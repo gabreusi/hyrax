@@ -208,7 +208,8 @@ Todas as funções são seguras em SSR: sem `document`, devolvem o fallback em v
 ## 6. Qualidade, documentação, CI e release
 
 ### Tooling
-- tsdown (ESM + CJS + `.d.ts`); npm (mantém o lockfile atual).
+- tsdown (ESM + CJS + `.d.ts`); npm (mantém o lockfile atual). TypeScript fixado em `~6.0` (não 7.x):
+  `typescript-eslint` declara suporte a `typescript < 6.1`.
 - Vitest com testes ao lado do código, `happy-dom` e Testing Library para `/dom` e `/react`, `expectTypeOf`
   para tipos públicos, `fast-check` para propriedades (`clamp`, `remap`, casing, `shuffle`), vetores fixos para
   `Random`. Cobertura mínima de 95% no `core`.
@@ -217,9 +218,12 @@ Todas as funções são seguras em SSR: sem `document`, devolvem o fallback em v
 - `size-limit` por entrypoint, com o limite guardado no CI.
 
 ### CI (GitHub Actions)
-Em todo PR: lint; typecheck por entrypoint; testes em Node 20, 22 e 24; `/react` contra React 18 e 19; build;
-`publint`; `@arethetypeswrong/cli`; smoke test do pacote construído em Node ESM e CJS (Bun e Deno como jobs
-best-effort); `size-limit`; build do site de docs.
+Em todo PR: lint; typecheck por entrypoint; testes em Node 22, 24 e 26 (o Vitest 5 exige Node >= 22.12, e o
+Node 20 está em EOL desde abril/2026); `/react` contra React 18 e 19; build; `publint`;
+`@arethetypeswrong/cli` com `--profile node16`; smoke test do pacote construído, instalado a partir do tarball,
+em Node 20, 22, 24 e 26 por ESM e CJS (Bun e Deno como jobs best-effort); `size-limit`; build do site de docs.
+`engines.node` continua `>=20`: o código é ES2022 e o smoke test cobre o Node 20. Consumidores em TypeScript
+precisam de `moduleResolution` `node16`, `nodenext` ou `bundler` para resolver `/dom` e `/react`.
 
 ### Release
 - changesets (PR de versão e `CHANGELOG` automáticos).
