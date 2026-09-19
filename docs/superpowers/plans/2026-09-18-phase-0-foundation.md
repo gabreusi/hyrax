@@ -1094,7 +1094,7 @@ ferramental de desenvolvimento não instala.
       Deno (o `pyyaml` não vem instalado por padrão):
 
 ```bash
-deno eval 'import { parse } from "jsr:@std/yaml"; const d = parse(await Deno.readTextFile(".github/workflows/ci.yml")); console.log(Object.keys(d.jobs).sort());'
+deno eval --no-lock 'import { parse } from "jsr:@std/yaml"; const d = parse(await Deno.readTextFile(".github/workflows/ci.yml")); console.log(Object.keys(d.jobs).sort());'
 ```
 
 Esperado: `[ "build", "quality", "runtimes", "smoke", "test", "test-react-18" ]`. Se `actionlint` estiver instalado,
