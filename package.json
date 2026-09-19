@@ -76,7 +76,8 @@
     "check:package": "publint && attw --pack . --profile node16",
     "smoke": "node scripts/smoke.mjs",
     "check": "npm run lint && npm run format:check && npm run typecheck && npm run check:boundary && npm run test:coverage && npm run build && npm run check:package && npm run size && npm run smoke",
-    "size": "size-limit"
+    "size": "size-limit",
+    "bench": "npm run build && node scripts/bench.mjs"
   },
   "peerDependencies": {
     "react": ">=18",
