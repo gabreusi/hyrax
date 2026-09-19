@@ -631,9 +631,11 @@ const dir = mkdtempSync(join(tmpdir(), "hyrax-smoke-"));
 try {
   let tarball = process.argv[2] && resolve(process.argv[2]);
   if (!tarball) {
-    const [{ filename }] = JSON.parse(
+    // `npm pack --json` prints an array up to npm 11 and an object keyed by package name on npm 12.
+    const packed = JSON.parse(
       run("npm", ["pack", "--json", "--pack-destination", dir], process.cwd()),
     );
+    const { filename } = Array.isArray(packed) ? packed[0] : Object.values(packed)[0];
     tarball = join(dir, filename);
   }
 
