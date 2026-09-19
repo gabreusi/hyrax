@@ -76,7 +76,8 @@
     "check:package": "publint && attw --pack . --profile node16",
     "smoke": "node scripts/smoke.mjs",
     "check": "npm run lint && npm run format:check && npm run typecheck && npm run check:boundary && npm run test:coverage && npm run build && npm run check:package && npm run size && npm run smoke",
-    "size": "size-limit"
+    "size": "size-limit",
+    "bench": "npm run build && node scripts/bench.mjs"
   },
   "peerDependencies": {
     "react": ">=18",
@@ -123,13 +124,31 @@
       "name": "root entrypoint, everything",
       "path": "dist/index.js",
       "import": "*",
-      "limit": "1.5 kB"
+      "limit": "6 kB"
     },
     {
       "name": "root entrypoint, clamp only",
       "path": "dist/index.js",
       "import": "{ clamp }",
       "limit": "150 B"
+    },
+    {
+      "name": "root entrypoint, Random only",
+      "path": "dist/index.js",
+      "import": "{ Random }",
+      "limit": "4 kB"
+    },
+    {
+      "name": "root entrypoint, StringBuilder only",
+      "path": "dist/index.js",
+      "import": "{ StringBuilder }",
+      "limit": "400 B"
+    },
+    {
+      "name": "root entrypoint, Suspend only",
+      "path": "dist/index.js",
+      "import": "{ Suspend }",
+      "limit": "700 B"
     }
   ]
 }

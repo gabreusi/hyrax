@@ -26,7 +26,7 @@ export default tseslint.config(
   {
     // Every exported symbol needs TSDoc with an @example (see spec section 6).
     files: ["src/**/*.{ts,tsx}"],
-    ignores: ["**/*.test.{ts,tsx}", "**/index.ts"],
+    ignores: ["**/*.test.{ts,tsx}", "**/index.ts", "**/internal/**"],
     plugins: { jsdoc },
     rules: {
       "jsdoc/require-jsdoc": [
@@ -40,7 +40,13 @@ export default tseslint.config(
       ],
       "jsdoc/require-example": [
         "error",
-        { contexts: ["FunctionDeclaration", "TSDeclareFunction"] },
+        {
+          contexts: [
+            "ExportNamedDeclaration > FunctionDeclaration",
+            "ExportNamedDeclaration > TSDeclareFunction",
+            "ExportNamedDeclaration > ClassDeclaration",
+          ],
+        },
       ],
     },
   },

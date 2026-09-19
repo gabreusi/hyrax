@@ -11,10 +11,25 @@ import { join, resolve } from "node:path";
 const NAME = "@gabreusi/hyrax";
 const entrypoints = [NAME, `${NAME}/dom`, `${NAME}/react`];
 
+// The determinism contract: a seed gives the same output in every runtime and module format.
+// EXACT covers everything built on integer arithmetic (the engine, int, from, shuffle, sample,
+// weighted, roll, uuid, bytes, fork): it must match bit for bit everywhere.
+// TRANSCENDENTAL covers luck != 0, normal and exponential, which use Math.pow, Math.log and
+// Math.cos. ECMAScript does not require those to round identically in every engine, so a
+// mismatch there is reported separately. Neither value may change without a major version.
+const EXACT =
+  '(() => { const r = new Random("hyrax"); const f = r.fork("terrain", 3, 4); return [r.int(1, 100), r.uuid(), Array.from(r.bytes(4)).join(","), f.next(), r.sample([1, 2, 3, 4, 5], 3).join(""), r.shuffle([1, 2, 3, 4, 5]).join(""), r.weighted(["a", "b", "c"], [80, 15, 5]), r.roll("2d6+3")].join(" "); })()';
+const EXACT_EXPECTED =
+  "33 627a9f02-43de-4af3-acb3-e143723b09c5 99,168,18,109 0.31158723663990495 452 21543 a 6";
+const TRANSCENDENTAL =
+  '(() => { const r = new Random({ seed: "hyrax", luck: 1.5 }); return [r.float(), r.int(1, 20), r.boolean(), r.normal(), r.exponential(2)].join(" "); })()';
+const TRANSCENDENTAL_EXPECTED = "0.5756361196616097 17 false 0.9888625997383569 0.5883254698180862";
+
 // A real TypeScript consumer of the public API. `@ts-expect-error` lines make the
 // compile fail if the types ever become looser than intended.
 const CONSUMER = `
-import { alias, clamp, fabricate, isNumeric, toCamelCase, traceHierarchy } from "${NAME}";
+import { alias, clamp, fabricate, isNumeric, random, Random, StringBuilder, Suspend, toCamelCase, traceHierarchy } from "${NAME}";
+import type { RandomState, SecureRandom } from "${NAME}";
 import type { Maybe, Numeric } from "${NAME}";
 
 const aliased = alias({ name: "Alice", age: 30 }, { age: ["years"] as const });
@@ -34,6 +49,25 @@ interface Node { parent: Node | null }
 declare const node: Node;
 export const chain: Node[] = traceHierarchy(node, "parent");
 
+export const roll: number = new Random("seed").int(1, 6);
+export const pick: string | undefined = random.from(["a", "b"]);
+export const classes: string = new StringBuilder().append("btn").if(true, "on").build();
+export const stop: () => void = new Suspend().on((elapsed: number) => void elapsed);
+
+export const child: Random = new Random({ seed: "w", luck: 1 }).fork("terrain", 3, 4);
+export const saved: RandomState = child.state();
+export const restored: Random = Random.restore(saved);
+export const drop: "common" | "rare" = new Random("x").weighted({ common: 80, rare: 20 });
+export const total: number = new Random("x").roll("2d6+3");
+const secure: SecureRandom = Random.secure();
+export const session: string = secure.token();
+
+// @ts-expect-error a secure generator has no state: it cannot be replayed
+secure.state();
+// @ts-expect-error a seeded generator has no token: a reproducible token would be a trap
+new Random("seed").token();
+// @ts-expect-error int needs both bounds
+new Random("seed").int(1);
 // @ts-expect-error clamp only accepts numbers
 clamp("1", 0, 2);
 // @ts-expect-error unknown alias
@@ -74,6 +108,24 @@ try {
     throw new Error(`clamp(15, 10) gave ${esm} (ESM) / ${cjs} (CJS), expected 10 / 10`);
   }
 
+  const script = `console.log(${EXACT}); console.log(${TRANSCENDENTAL});`;
+  const viaEsm = run(
+    "node",
+    ["--input-type=module", "-e", `import { Random } from "${NAME}"; ${script}`],
+    dir,
+  ).trim();
+  const viaCjs = run(
+    "node",
+    ["-e", `const { Random } = require("${NAME}"); ${script}`],
+    dir,
+  ).trim();
+  const expected = `${EXACT_EXPECTED}\n${TRANSCENDENTAL_EXPECTED}`;
+  if (viaEsm !== expected || viaCjs !== expected) {
+    throw new Error(
+      `Seeded output changed.\nESM:\n${viaEsm}\nCJS:\n${viaCjs}\nExpected:\n${expected}`,
+    );
+  }
+
   // Type-check a consumer against the installed package. Needs the repo's own
   // TypeScript, so it is skipped where dependencies are not installed.
   const tsc = resolve(process.cwd(), "node_modules/typescript/lib/tsc.js");
@@ -105,7 +157,14 @@ try {
 
   const runtimes = (process.env.HYRAX_SMOKE_RUNTIMES ?? "").split(",").filter(Boolean);
   const code = `${entrypoints.map((id, i) => `import * as m${i} from "${id}";`).join("")}
-    if (m0.clamp(15, 10) !== 10) throw new Error("clamp broken");`;
+    if (m0.clamp(15, 10) !== 10) throw new Error("clamp broken");
+    const { Random } = m0;
+    const exact = ${EXACT};
+    if (exact !== "${EXACT_EXPECTED}") throw new Error("EXACT seeded output differs: " + exact);
+    const transcendental = ${TRANSCENDENTAL};
+    if (transcendental !== "${TRANSCENDENTAL_EXPECTED}") {
+      throw new Error("TRANSCENDENTAL seeded output differs (Math.pow/log/cos): " + transcendental);
+    }`;
   for (const runtime of runtimes) {
     if (runtime === "deno") run("deno", ["eval", "--node-modules-dir=manual", code], dir);
     else if (runtime === "bun") run("bun", ["-e", code], dir);

@@ -13,7 +13,7 @@ describe("@gabreusi/hyrax (root entrypoint)", () => {
 
   it("exposes exactly the intended public API", () => {
     // Adding or removing an export is an API decision: update this list on purpose.
-    expect(Object.keys(root).sort()).toEqual([
+    const expected = [
       "alias",
       "clamp",
       "coalesce",
@@ -21,15 +21,20 @@ describe("@gabreusi/hyrax (root entrypoint)", () => {
       "isNumeric",
       "lerp",
       "noop",
+      "Random",
+      "random",
       "ratio",
       "remap",
       "splitWords",
+      "StringBuilder",
+      "Suspend",
       "toCamelCase",
       "toKebabCase",
       "toNumber",
       "toPascalCase",
       "toSnakeCase",
       "traceHierarchy",
-    ]);
+    ];
+    expect(Object.keys(root).sort()).toEqual(expected.sort());
   });
 });
