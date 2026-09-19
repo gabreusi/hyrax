@@ -1089,13 +1089,15 @@ jobs:
 O job `smoke` **não roda `npm ci`**: só precisa do script e do tarball, e por isso funciona em Node 20, onde o
 ferramental de desenvolvimento não instala.
 
-- [ ] **Step 2: Validar a sintaxe YAML** (não há como rodar o Actions localmente; a primeira execução real é o push).
+- [ ] **Step 2: Validar o YAML** (não há como rodar o Actions localmente; a primeira execução real é o push). O
+      Prettier já rejeita YAML inválido (`npx prettier --check .github`). Para conferir a estrutura, use o parser do
+      Deno (o `pyyaml` não vem instalado por padrão):
 
 ```bash
-python3 -c "import yaml,sys; d=yaml.safe_load(open('.github/workflows/ci.yml')); print(sorted(d['jobs']))"
+deno eval 'import { parse } from "jsr:@std/yaml"; const d = parse(await Deno.readTextFile(".github/workflows/ci.yml")); console.log(Object.keys(d.jobs).sort());'
 ```
 
-Esperado: `['build', 'quality', 'runtimes', 'smoke', 'test', 'test-react-18']`. Se `actionlint` estiver instalado,
+Esperado: `[ "build", "quality", "runtimes", "smoke", "test", "test-react-18" ]`. Se `actionlint` estiver instalado,
 rode `actionlint`.
 
 - [ ] **Step 3: Conferir que os comandos do CI funcionam localmente**, já que o workflow só os encadeia.
