@@ -1,15 +1,30 @@
-# Hyrax 
-**My personal collection of utility functions and hooks for TypeScript & React**  
+# Hyrax
 
-Hyrax is a small library I built for myself to make my life easier when working with TypeScript and React. It’s a grab bag of utility functions and custom hooks that I find useful across different projects. Instead of rewriting the same logic over and over, I decided to bundle them up into this little package.  
+[![CI](https://github.com/gabreusi/hyrax/actions/workflows/ci.yml/badge.svg)](https://github.com/gabreusi/hyrax/actions/workflows/ci.yml)
 
-## Why? 🤔  
-I got tired of copy-pasting the same helper functions and hooks across projects, so I put them all in one place. Now, I can just install Hyrax and get back to coding without the extra hassle.  
+An isomorphic TypeScript toolkit: seeded random, number and string helpers, and DOM and React utilities.
+Zero runtime dependencies. Works in Node, browsers, Deno and Bun.
 
-## What's Inside? 📦  
-- Handy utility functions  
-- Custom React hooks I use all the time  
-- A little bit of everything to speed up development  
-- Nothing fancy—just things that I personally find useful  
+> **Status:** being rebuilt from scratch toward 1.0. The package is not published yet under its new name
+> (`@gabreusi/hyrax`). The old 0.x code (`@gpsign/hyrax`) lives at the git tag `legacy-0.6.1`.
 
-This isn’t meant to be a polished, production-ready library—it’s just my personal toolkit.
+## Entrypoints
+
+| Import                  | Runs in                   | Contents                             |
+| ----------------------- | ------------------------- | ------------------------------------ |
+| `@gabreusi/hyrax`       | Anywhere                  | Universal helpers (no DOM, no React) |
+| `@gabreusi/hyrax/dom`   | Browsers                  | DOM utilities                        |
+| `@gabreusi/hyrax/react` | React 18+ (optional peer) | Hooks and components                 |
+
+## Requirements
+
+Node 20 or newer. TypeScript consumers need `moduleResolution` set to `node16`, `nodenext` or `bundler`
+(the `/dom` and `/react` subpaths use the package `exports` map).
+
+## Development
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md).
+
+## License
+
+[MIT](./LICENSE)
