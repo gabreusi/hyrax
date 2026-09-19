@@ -1,3 +1,4 @@
+import { parseDiceCached, rollTerms } from "./internal/dice";
 import type { Engine } from "./internal/engines";
 import { nextDown } from "./internal/float";
 import { lucky } from "./internal/luck";
@@ -323,6 +324,170 @@ export abstract class RandomBase {
       if (i + 3 < count) bytes[i + 3] = word & 255;
     }
     return bytes;
+  }
+
+  /**
+   * Picks one item, in proportion to its weight: `[80, 15, 5]` picks the first item 80% of the
+   * time. Items with weight `0` are never picked. Affected by luck, which slides the pick toward the
+   * **end of the list**: with positive luck the later, rarer entries come up more often, so list
+   * items from the most common to the rarest.
+   *
+   * @example
+   * ```ts
+   * new Random("x").weighted(["common", "rare", "epic"], [80, 15, 5]);
+   * ```
+   *
+   * @param items - What to pick from.
+   * @param weights - One weight per item: finite and not negative, adding up to more than `0`.
+   * @returns The picked item.
+   * @throws {RangeError} For a table it cannot use: mismatched lengths, no items, a bad weight or a
+   *   zero (or overflowing) total.
+   */
+  weighted<T>(items: readonly T[], weights: readonly number[]): T;
+  /**
+   * Picks one key of an object, in proportion to its weight. Same rules as the array form. Note that
+   * JavaScript lists integer-like keys (`"1"`, `"2"`) first, whatever order you wrote them in.
+   *
+   * @example
+   * ```ts
+   * new Random("x").weighted({ common: 80, rare: 15, epic: 5 }); // => "common", "rare" or "epic"
+   * ```
+   *
+   * @param table - Each key with its weight.
+   * @returns The picked key.
+   * @throws {RangeError} For a table it cannot use.
+   */
+  weighted<K extends string>(table: Readonly<Record<K, number>>): K;
+  weighted(
+    first: readonly unknown[] | Readonly<Record<string, number>>,
+    second?: readonly number[],
+  ): unknown {
+    const isList = Array.isArray(first);
+    const items: readonly unknown[] = isList ? (first as readonly unknown[]) : Object.keys(first);
+    const weights: readonly number[] | undefined = isList
+      ? second
+      : Object.values(first as Readonly<Record<string, number>>);
+    if (!weights || weights.length !== items.length) {
+      throw new RangeError("weighted() needs one weight per item.");
+    }
+    if (items.length === 0) throw new RangeError("weighted() needs at least one item.");
+
+    let total = 0;
+    for (const weight of weights) {
+      if (!Number.isFinite(weight) || weight < 0) {
+        throw new RangeError(`weighted() weights must be finite and not negative, got ${weight}.`);
+      }
+      total += weight;
+    }
+    if (!Number.isFinite(total)) throw new RangeError("weighted() weights overflow when added up.");
+    if (total <= 0) throw new RangeError("weighted() needs weights that add up to more than 0.");
+
+    // The point is always below `total` (the draw is below 1 and rounds down), and the running sum
+    // reaches `total` exactly, so this stops on an item that has weight and never runs past the end.
+    const point = lucky(this.next(), this.luck) * total;
+    let index = 0;
+    let cumulative = weights[0] as number;
+    while (point >= cumulative) cumulative += weights[++index] as number;
+    return items[index];
+  }
+
+  /**
+   * `count` items chosen without repeating a position, in random order (a partial Fisher-Yates).
+   * It samples positions, not values: two equal items in the input can both come out. The input is
+   * left untouched. Fair: ignores luck.
+   *
+   * @example
+   * ```ts
+   * new Random("x").sample(["a", "b", "c", "d", "e"], 3); // => e.g. ["d", "a", "e"]
+   * ```
+   *
+   * @param items - What to sample from.
+   * @param count - How many, from `0` up to `items.length`.
+   * @returns The chosen items.
+   * @throws {RangeError} When `count` is not a whole number between `0` and the number of items.
+   */
+  sample<T>(items: readonly T[], count: number): T[] {
+    if (!Number.isInteger(count) || count < 0 || count > items.length) {
+      throw new RangeError(
+        `sample() needs a whole number from 0 to ${items.length}, got ${count}.`,
+      );
+    }
+    const pool = [...items];
+    const picked: T[] = [];
+    for (let i = 0; i < count; i++) {
+      const j = i + this.#below(pool.length - i, "sample()");
+      const held = pool[i] as T;
+      pool[i] = pool[j] as T;
+      pool[j] = held;
+      picked.push(pool[i] as T);
+    }
+    return picked;
+  }
+
+  /**
+   * A normally distributed number (Box-Muller): a bell curve around `mean`. It uses four words per
+   * call and never takes `log(0)`. Fair: ignores luck.
+   *
+   * @example
+   * ```ts
+   * new Random("x").normal(100, 15); // => e.g. 108.4
+   * ```
+   *
+   * @param mean - The centre of the curve (default `0`).
+   * @param deviation - How wide it is (default `1`); `0` always returns the mean.
+   * @returns The number.
+   * @throws {RangeError} When `mean` or `deviation` is not finite, or `deviation` is negative.
+   */
+  normal(mean = 0, deviation = 1): number {
+    if (!Number.isFinite(mean) || !Number.isFinite(deviation) || deviation < 0) {
+      throw new RangeError(
+        `normal() needs a finite mean and a deviation of 0 or more, got ${mean} and ${deviation}.`,
+      );
+    }
+    const radius = Math.sqrt(-2 * Math.log(1 - this.next()));
+    const angle = 2 * Math.PI * this.next();
+    return mean + deviation * radius * Math.cos(angle);
+  }
+
+  /**
+   * An exponentially distributed number: the waiting time between events that happen `rate` times
+   * per unit. The mean is `1 / rate`. Fair: ignores luck.
+   *
+   * @example
+   * ```ts
+   * new Random("x").exponential(2); // => e.g. 0.31 (a mean of 0.5)
+   * ```
+   *
+   * @param rate - Events per unit, greater than `0` (default `1`).
+   * @returns The waiting time.
+   * @throws {RangeError} When `rate` is not a positive, finite number.
+   */
+  exponential(rate = 1): number {
+    if (!Number.isFinite(rate) || rate <= 0) {
+      throw new RangeError(`exponential() needs a positive, finite rate, got ${rate}.`);
+    }
+    return (0 - Math.log(1 - this.next())) / rate;
+  }
+
+  /**
+   * Rolls dice from a notation and adds them up. Terms are joined with `+` or `-`: each is `NdM`
+   * (N dice with M sides; N defaults to 1), optionally followed by `khK` or `klK` to keep the K
+   * highest or lowest dice, or a whole number. Spaces and case are ignored. **Every die uses the
+   * generator's luck**, so luck 1 on a `1d20` is exactly advantage.
+   *
+   * @example
+   * ```ts
+   * new Random("x").roll("2d6+3"); // => 5 to 15
+   * new Random("x").roll("4d6kh3"); // => the best three of four d6
+   * new Random("x").roll("1d8+1d6-1");
+   * ```
+   *
+   * @param notation - The dice notation.
+   * @returns The total.
+   * @throws {RangeError} For a notation it cannot read, or more than 1000 dice in total.
+   */
+  roll(notation: string): number {
+    return rollTerms(parseDiceCached(notation), (sides) => this.int(1, sides));
   }
 
   /**
