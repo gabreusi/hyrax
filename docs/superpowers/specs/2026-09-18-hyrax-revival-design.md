@@ -1,6 +1,6 @@
 # Hyrax 1.0: design da ressurreição
 
-Data: 2026-09-18 · Status: aguardando revisão · Pacote: `@gabreusi/hyrax`
+Data: 2026-09-18 (seção 4, `Random`, revista em 2026-09-19) · Status: aguardando revisão · Pacote: `@gabreusi/hyrax`
 
 ## 1. Objetivo
 
@@ -19,14 +19,14 @@ Requisito central: **a biblioteca não é uma lib de frontend React.** O núcleo
 | Nome e registro | `@gabreusi/hyrax` no npmjs (o escopo `@gpsign` não faz mais sentido). Em paralelo, tentar reivindicar `hyrax` (abandonado desde 2017). `@gpsign/hyrax` recebe `npm deprecate` no 1.0 |
 | Compatibilidade | Sem compat com a API 0.x. O 0.x permite quebras, e o guia de migração cobre a transição |
 | Entrypoints | Três, por ambiente: raiz (universal), `/dom`, `/react`. Só exports nomeados, sem o objeto default `Hyrax` |
-| Peças mantidas | `Random`, `Suspend`, `alias`, `StringBuilder`, `fabricate`, `nvl` (como `coalesce`), `hx`, `Portal`, matemática e casing de strings |
+| Peças mantidas | `Random` (com modo seguro, `luck`, `fork` e `state`), `Suspend`, `alias`, `StringBuilder`, `fabricate`, `nvl` (como `coalesce`), `hx`, `Portal`, matemática e casing de strings |
 | Peças removidas | `length`, `useAudioRecorder`, `ChildrenRefs`, `BlurListener`, `useChildrenRefs`, `getBoundingClientRect`, `getCSSProperties`, tipos `Any`/`Widen`/`Count`/`Index`/`AnyRecord` |
 | Documentação | Site VitePress em inglês, API gerada por TypeDoc, exemplos do TSDoc testados no CI |
 
 ### Fora de escopo
 
 - Entrypoints para outros frameworks (`/vue`, `/svelte`). O desenho permite adicioná-los depois; nenhum é entregue no 1.0.
-- Aleatoriedade criptograficamente segura.
+- Segurança criptográfica do `Random` **com seed**: ele é reproduzível e, por isso, previsível. Só `Random.secure()` é seguro.
 - Compatibilidade retroativa com a API 0.x.
 - Publicação no GitHub Packages.
 - O modo `stateless` do `useInterval`.
@@ -38,6 +38,7 @@ src/
   index.ts              → raiz universal (@gabreusi/hyrax)
   core/                 number, string, random, alias, tree, fabricate, coalesce,
                         suspend, string-builder, types
+    internal/           (não exportado) host, engines, luck, dice
   dom/index.ts          → @gabreusi/hyrax/dom
   react/index.ts        → @gabreusi/hyrax/react
 docs/                   site VitePress (a pasta docs/superpowers/ é ignorada via srcExclude)
@@ -111,33 +112,118 @@ Todo símbolo público tem TSDoc completo, com `@example` executado como teste.
 
 ### Random
 
-Classe sem métodos `static`, mais uma instância compartilhada e sem seed, `random`.
+Uma classe, sem métodos `static` duplicados, com **dois motores** atrás da mesma API e uma instância compartilhada e
+sem seed, `random`. O desenho foi revisto em 2026-09-19, antes de qualquer implementação, porque o algoritmo, os vetores de
+saída e os formatos de `fork` e `state` viram contrato no 1.0.
 
 ```ts
 import { Random, random } from "@gabreusi/hyrax";
 
-random.int(1, 6);                    // uso rápido
-const r = new Random("fixture-42");  // determinístico
-r.int(1, 6); r.float(0, 1); r.boolean(0.75);
-r.from(["a", "b", "c"]); r.shuffle(list); r.pop(list);
-r.date("2020-01-01", "2020-12-31");
-r.id(12); r.uuid();
+random.int(1, 6);                              // uso rápido, sem seed
+const rng = new Random("fixture-42");          // reproduzível; um número vale como a sua string
+const lucky = new Random({ seed: "x", luck: 1 });
+const secure = Random.secure();                // fonte criptográfica: sem seed, sem reprodutibilidade
+
+rng.int(1, 6); rng.float(0, 1); rng.boolean(0.75);
+rng.from(["a", "b"]); rng.pop(list); rng.shuffle(list); rng.sample(list, 3);
+rng.weighted({ comum: 80, raro: 15, epico: 5 }); rng.roll("2d6+3");
+rng.normal(100, 15); rng.exponential(2);
+rng.date("2020-01-01", "2020-12-31"); rng.id(12); rng.uuid(); rng.bytes(16);
+rng.fork("terreno", 3, 4); rng.state(); Random.restore(estado);
+secure.token(); // base64url, só existe no modo seguro
 ```
 
-- Motor sfc32 semeado por cyrb128. O estado avança de fato a cada chamada. Os caches globais e a reseed a
-  cada `number()` saem, e com eles o vazamento de memória.
-- `int(min, max)` é inclusivo nos dois lados e sem viés (o `Math.round` atual dá metade da chance aos
-  extremos). `float(min, max)` cobre `[min, max)`. Substituem `number(min, max, digits)`.
-- `shuffle` usa Fisher-Yates sobre `int` e devolve uma cópia (hoje só há 101 valores possíveis por passo).
-- `boolean(chance = 0.5)` recebe uma fração de 0 a 1. Fora do intervalo lança `RangeError`.
-- `uuid()` devolve um UUID v4 real, gerado a partir do fluxo com seed (determinístico quando há seed). O
-  método antigo vira `id(length, alphabet?)`, agora com o `0` no alfabeto. O `UUID_CACHE` sai, e a doc avisa
-  que não há garantia de unicidade.
-- `from`, `pop`, `date` permanecem. O `pop` usa o índice sorteado direto, sem `indexOf`.
-- Saem `Symbol.toPrimitive`, `toString` e o `console.error` de combinações esgotadas.
-- **Contrato de determinismo:** mesma seed e mesma sequência de chamadas produzem a mesma saída em qualquer
-  runtime. Os testes fixam vetores conhecidos. Mudar o algoritmo é uma quebra major. Documentado como **não
-  criptográfico**.
+**Garantias (cada uma é um teste que pode falhar)**
+
+| Método | Viés | `luck` | Fonte |
+|---|---|---|---|
+| `int` (com `luck = 0`), `from`, `pop`, `shuffle`, `sample`, `id`, `date` | **Zero, por rejeição** (sorteia de novo quando cai fora) | só `int` | 1 palavra de 32 bits (2 acima de 2^32, até 2^53) |
+| `float`, `boolean` | Resolução de 2^-53, o limite do `double` | sim | 2 palavras: 53 bits |
+| `weighted` | Zero para pesos representáveis; peso 0 nunca é sorteado | sim | 53 bits |
+| `normal`, `exponential` | Contínuas, sem `log(0)` (usam `1 - next()`) | nunca | 53 bits |
+| `uuid`, `id`, `bytes`, `token` | Sem viés | nunca | o motor |
+
+- **Motor com seed:** sfc32 semeado por cyrb128, com 12 saídas descartadas. **Não é criptográfico**: quem observa algumas saídas
+  consegue prever as próximas, inclusive na instância `random` sem seed. O estado tem 128 bits, então `shuffle` com seed só
+  alcança todas as permutações até 34 elementos (34! < 2^128 < 35!). Os dois limites ficam documentados.
+- **Motor seguro:** `crypto.getRandomValues` com buffer de 256 palavras (medido: 43 ns por palavra, contra 3,1 µs sem buffer).
+  Se `crypto` não existir, `Random.secure()` **lança erro**, e nunca cai em `Math.random`. Sem o limite de 34 elementos.
+- **`Random.secure()` devolve `SecureRandom`**, um tipo sem `seed` nem `state` (`secure.state()` não compila) e com `fork()` sem
+  chaves, que devolve outro gerador seguro. `token(bytes = 32)` (base64url, sem padding) **só existe no modo seguro** e lança
+  `TypeError` no gerador com seed, porque um "token" reproduzível seria uma armadilha de segurança.
+
+**`luck`: vantagem contínua.** Só na criação (`new Random({ seed, luck })` ou `Random.secure({ luck })`), imutável, `0` por padrão
+(`RangeError` para valores não finitos; a documentação recomenda de -5 a 5). Sobre um sorteio uniforme `u`:
+`luck >= 0`: `u' = u^(1/(1+luck))` (equivale a manter o melhor de `1 + luck` sorteios); `luck < 0`: `u' = 1 - (1-u)^(1/(1-luck))`
+(o pior de `1 - luck`). Com `luck = 0` é a identidade exata. `u'` é limitado a `1 - 2^-53`: sem isso, com `luck >= 2` e o maior
+`u` possível, `u'` chega a `1.0` e `float` devolveria o próprio `max` e `int` um índice fora do intervalo.
+
+| luck | d20 médio | P(d20 >= 15) | teste de 50% |
+|---|---|---|---|
+| -2 | 5,5 | 2,7% | 12,5% |
+| -1 | 7,2 | 8,9% | 24,9% |
+| 0 | 10,5 | 30,1% | 50,1% |
+| 1 | 13,8 | 50,9% | 75,0% |
+| 2 | 15,5 | 65,7% | 87,5% |
+| 4 | 17,2 | 83,2% | 96,9% |
+
+- Age só nos métodos de **resultado**: `int`, `float`, `boolean`, `weighted`, `roll`. Os **estruturais** (`from`, `pop`, `shuffle`,
+  `sample`, `date`, `id`, `uuid`, `bytes`, `token`, `normal`, `exponential`) ignoram o `luck`.
+- **Monotonia:** cada chamada consome sempre o mesmo número de sorteios, com qualquer `luck`. Para a mesma seed e a mesma sequência
+  de chamadas, aumentar o `luck` nunca piora nenhum resultado individual. Para o `int` exato isso custa uma fração de 32 bits
+  a mais por chamada, ignorada quando `luck = 0`.
+- `boolean(chance)` é `true` quando `u' >= 1 - chance`; com `luck = 1` um teste de 50% vira 75%. Em `weighted`, `luck` positivo
+  desliza o peso para o **fim da lista**: liste do mais comum ao mais raro.
+
+**Métodos**
+- `next()`: `float` justo em `[0, 1)`, 53 bits, nunca afetado por `luck`.
+- `float(min, max)`: `[min, max)` de verdade (o resultado nunca é `max`), limites em qualquer ordem, `RangeError` se não finitos.
+- `int(min, max)`: inclusivo nos dois lados, limites fracionários arredondados para dentro, ordem invertida aceita, `RangeError`
+  quando não há inteiro no intervalo.
+- `boolean(chance = 0.5)`: `chance` de 0 a 1; fora disso `RangeError` (`boolean(50)` não vira "sempre").
+- `from(fonte)`: elemento de array, ponto de código de string ou valor de objeto; `undefined` se vazio. `pop(array)` remove por
+  posição. `shuffle(array)` devolve uma cópia (Fisher-Yates).
+- `sample(itens, n)`: `n` posições distintas, em ordem aleatória, sem alterar o original; `RangeError` se `n` for negativo,
+  fracionário ou maior que o tamanho.
+- `weighted(itens, pesos)` e `weighted({ chave: peso })`: `RangeError` para tamanhos diferentes, lista vazia, peso negativo ou
+  não finito e soma zero. Em objetos, chaves inteiras (`"1"`) o JavaScript reordena antes das demais.
+- `normal(média = 0, desvio = 1)`: Box-Muller. `exponential(taxa = 1)`: `-ln(1 - next()) / taxa`.
+- `roll(notação)`: soma de termos, cada um `NdM` (com `kh K` ou `kl K`) ou uma constante: `"2d6+3"`, `"4d6kh3"`,
+  `"1d8+1d6-1"`. Sem distinção de maiúsculas, espaços ignorados, no máximo 1000 dados no total, `RangeError` que aponta o trecho
+  inválido. Cada dado usa o `luck`.
+- `date(after, before)`: até 2^53 ms, `RangeError` para datas inválidas; o limite superior padrão é "agora", então só é
+  reproduzível se os dois limites forem passados.
+- `id(length = 10, alphabet?)` com o `0` no alfabeto; `uuid()` v4 real; `bytes(n)`: 4 bytes por palavra, big-endian.
+- `fork(...chaves)`: gerador independente e **estável**: depende só da seed do pai e das chaves, nunca de quantos sorteios o pai
+  já fez. A seed do filho é o JSON de `[seedDoPai, ...chaves]` (então `fork("a/b")` nunca colide com `fork("a", "b")`) e
+  reproduz o filho com `new Random(filho.seed)`. Herda o `luck`.
+- `state()` devolve `{ version: 1, seed, luck, engine: [a, b, c, d] }`, JSON puro; `Random.restore(estado)` valida o formato e
+  retoma exatamente de onde parou.
+- Saem `Symbol.toPrimitive`, `toString`, o `console.error` de combinações esgotadas, o parâmetro `digits` do `number` legado e o
+  `UUID_CACHE`.
+
+**Desempenho** (medido em protótipo): `uuid` de 6,3 µs para 0,39 µs (na velocidade do `crypto.randomUUID`) e `id(16)` de 1,8 µs
+para 0,45 µs, com tabela hexadecimal e alfabeto pré-dividido. `int` exato por rejeição custa ~10 ns a mais que o `floor` de um
+`float` (30 contra 20 ns), preço aceito pela garantia de viés zero. Um `scripts/bench.mjs` (`npm run bench`) reproduz os números
+sem ser gate de CI.
+
+**Forma da API.** Os métodos ficam na própria classe, e não como funções soltas: medi 1,56 kB (métodos) contra 1,19 kB (funções
+tree-shakeable) para quem só quer o núcleo, e a diferença de ~0,4 kB não compensa perder autocomplete e encadeamento.
+
+**Contrato de determinismo (congelado no 1.0).** Para uma seed ficam fixos: o motor, a fórmula de `next()`, a rejeição
+(quais bits, quantos sorteios), a transformação do `luck` e o seu limite, a derivação de `fork`, o formato `state` v1, as
+fórmulas de `normal` e `exponential`, a gramática de `roll`, a ordem cumulativa de `weighted`, o layout de `uuid` e `bytes` e a
+codificação de `token`. **Mudar a saída de qualquer método para uma mesma seed é uma versão major; adicionar métodos é minor.**
+Os vetores de cada método ficam fixados nos testes e o smoke test exige a mesma saída em Node ESM, Node CJS, Deno e Bun.
+
+**Fora, de propósito:** `poisson`, `bigint`, tabela de alias para `weighted` de milhões de itens, ruído de Perlin e geradores de
+dados falsos. São adições compatíveis, então podem esperar.
+
+**Testes.** O viés zero é provado sem estatística: no modo seguro, um `crypto.getRandomValues` falso alimenta palavras
+roteirizadas, e para `int(0, 5)` (3 bits) os 8 padrões de bits devem produzir 0 a 5 exatamente uma vez e rejeitar 6 e 7. O
+mesmo mecanismo força `u` máximo com `luck` alto. Também: monotonia do `luck` com `fast-check`, médias contra a tabela teórica,
+`fork` independente do uso do pai, ida e volta de `state`, buffer do modo seguro, peso 0 nunca sorteado, e mutações que
+reintroduzem cada defeito para provar que os testes o pegam.
 
 ### StringBuilder
 
@@ -255,7 +341,7 @@ precisam de `moduleResolution` `node16`, `nodenext` ou `bundler` para resolver `
 | `Random.number(min, max, digits)` | `random.int(min, max)` / `random.float(min, max)` |
 | `Random.uuid(n)` | `random.id(n)` (o `uuid()` novo é um UUID v4 real) |
 | `Random.boolean(75)` | `random.boolean(0.75)` |
-| `Random.<método>` estático | Instância `random` ou `new Random(seed)` |
+| `Random.<método>` estático | Instância `random` ou `new Random(seed)`; para tokens, `Random.secure()` |
 | `new StringBuilder(true)` | `new StringBuilder({ unique: true })` |
 | `StringBuilder.get(delim)` | `build(separator)` |
 | `Suspend.addListener(cb, once)` | `new Suspend(opts).on(cb, { once })` |
