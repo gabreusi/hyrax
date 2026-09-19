@@ -69,7 +69,10 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npm run check:package
+      - run: npm run size
       - run: mkdir pack && npm pack --pack-destination pack
+      # Dependencies are installed here, so this run also type-checks a consumer.
+      - run: node scripts/smoke.mjs pack/*.tgz
       - uses: actions/upload-artifact@v7
         with:
           name: tarball
