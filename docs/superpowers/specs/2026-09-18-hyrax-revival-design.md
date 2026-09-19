@@ -148,14 +148,18 @@ secure.token(); // base64url, só existe no modo seguro
   alcança todas as permutações até 34 elementos (34! < 2^128 < 35!). Os dois limites ficam documentados.
 - **Motor seguro:** `crypto.getRandomValues` com buffer de 256 palavras (medido: 43 ns por palavra, contra 3,1 µs sem buffer).
   Se `crypto` não existir, `Random.secure()` **lança erro**, e nunca cai em `Math.random`. Sem o limite de 34 elementos.
-- **`Random.secure()` devolve `SecureRandom`**, um tipo sem `seed` nem `state` (`secure.state()` não compila) e com `fork()` sem
-  chaves, que devolve outro gerador seguro. `token(bytes = 32)` (base64url, sem padding) **só existe no modo seguro** e lança
-  `TypeError` no gerador com seed, porque um "token" reproduzível seria uma armadilha de segurança.
+- **`Random.secure()` devolve `SecureRandom`**, uma classe irmã de `Random` (as duas herdam os métodos de sorteio de uma base
+  comum) sem `seed` nem `state` (`secure.state()` não compila) e com `fork()` sem chaves, que devolve outro gerador seguro.
+  `token(bytes = 32)` (base64url, sem padding) **só existe em `SecureRandom`**: no tipo `Random` ele não existe, então
+  `rng.token()` nem compila (em JavaScript puro é um `TypeError`), porque um "token" reproduzível seria uma armadilha de
+  segurança. `SecureRandom` é exportado só como **tipo**.
 
 **`luck`: vantagem contínua.** Só na criação (`new Random({ seed, luck })` ou `Random.secure({ luck })`), imutável, `0` por padrão
 (`RangeError` para valores não finitos; a documentação recomenda de -5 a 5). Sobre um sorteio uniforme `u`:
 `luck >= 0`: `u' = u^(1/(1+luck))` (equivale a manter o melhor de `1 + luck` sorteios); `luck < 0`: `u' = 1 - (1-u)^(1/(1-luck))`
-(o pior de `1 - luck`). Com `luck = 0` é a identidade exata. `u'` é limitado a `1 - 2^-53`: sem isso, com `luck >= 2` e o maior
+(o pior de `1 - luck`), calculado como `-expm1(log1p(-u) / (1 - luck))` porque a forma direta perde precisão para `u`
+minúsculo (`1 - u` só existe em passos de 2^-53) e empurraria esse sorteio para cima em vez de para baixo. Com `luck = 0` é a
+identidade exata. `u'` é limitado a `1 - 2^-53`: sem isso, com `luck >= 2` e o maior
 `u` possível, `u'` chega a `1.0` e `float` devolveria o próprio `max` e `int` um índice fora do intervalo.
 
 | luck | d20 médio | P(d20 >= 15) | teste de 50% |
@@ -170,8 +174,9 @@ secure.token(); // base64url, só existe no modo seguro
 - Age só nos métodos de **resultado**: `int`, `float`, `boolean`, `weighted`, `roll`. Os **estruturais** (`from`, `pop`, `shuffle`,
   `sample`, `date`, `id`, `uuid`, `bytes`, `token`, `normal`, `exponential`) ignoram o `luck`.
 - **Monotonia:** cada chamada consome sempre o mesmo número de sorteios, com qualquer `luck`. Para a mesma seed e a mesma sequência
-  de chamadas, aumentar o `luck` nunca piora nenhum resultado individual. Para o `int` exato isso custa uma fração de 32 bits
-  a mais por chamada, ignorada quando `luck = 0`.
+  de chamadas, aumentar o `luck` nunca piora nenhum resultado individual de `int`, `boolean`, `weighted` e `roll`; em `float` vale
+  até um degrau de arredondamento (2^-52), porque `Math.pow` não é exatamente monótona no último bit. Para o `int` exato isso
+  custa uma fração de 32 bits a mais por chamada, ignorada quando `luck = 0`.
 - `boolean(chance)` é `true` quando `u' >= 1 - chance`; com `luck = 1` um teste de 50% vira 75%. Em `weighted`, `luck` positivo
   desliza o peso para o **fim da lista**: liste do mais comum ao mais raro.
 
@@ -202,15 +207,31 @@ secure.token(); // base64url, só existe no modo seguro
 - Saem `Symbol.toPrimitive`, `toString`, o `console.error` de combinações esgotadas, o parâmetro `digits` do `number` legado e o
   `UUID_CACHE`.
 
-**Desempenho** (medido em protótipo): `uuid` de 6,3 µs para 0,39 µs (na velocidade do `crypto.randomUUID`) e `id(16)` de 1,8 µs
-para 0,45 µs, com tabela hexadecimal e alfabeto pré-dividido. `int` exato por rejeição custa ~10 ns a mais que o `floor` de um
+**Desempenho** (medido na implementação final, Node 26): `uuid()` **127 ns**, mais rápido que o `crypto.randomUUID` nativo (161 ns);
+`id(16)` de 1,8 µs para **218 ns**; `roll("2d6+3")` de 855 ns para **265 ns** com o cache de notações; `int(1, 6)` 16 ns (o
+`Math.random` faz 7 ns). No modo seguro: `int` 46 ns, `uuid()` 183 ns e `token()` 390 ns. `int` exato por rejeição custa ~10 ns a mais que o `floor` de um
 `float` (30 contra 20 ns), preço aceito pela garantia de viés zero. Um `scripts/bench.mjs` (`npm run bench`) reproduz os números
 sem ser gate de CI.
 
-**Forma da API.** Os métodos ficam na própria classe, e não como funções soltas: medi 1,56 kB (métodos) contra 1,19 kB (funções
-tree-shakeable) para quem só quer o núcleo, e a diferença de ~0,4 kB não compensa perder autocomplete e encadeamento.
+**Forma da API.** Os métodos ficam na própria classe, e não como funções soltas. Medido na implementação final (brotli, minificado):
+o `Random` inteiro custa **3,15 kB**, e o seu núcleo sem `weighted`, `sample`, `normal`, `exponential` e `roll` custa **2,23 kB**, ou
+seja, os cinco extras somam **0,92 kB** que todo usuário de `Random` paga, mesmo se só usar `int`. A aposta é que ~1 kB não compensa
+perder autocomplete e encadeamento; se isso mudar, mover os extras para funções tree-shakeable (`roll(rng, "2d6")`) é mecânico e
+não altera nenhuma saída. Importar só `clamp` continua custando 76 B.
 
-**Contrato de determinismo (congelado no 1.0).** Para uma seed ficam fixos: o motor, a fórmula de `next()`, a rejeição
+**Organização do código.** `random-base.ts` (a classe abstrata com os métodos de sorteio), `random.ts` (`Random`: seed, `fork`,
+`state`, `restore`, `secure`) e `secure-random.ts` (`SecureRandom`, `token`). Em `internal/`: `engines.ts` (sfc32 e o motor com
+`crypto`), `luck.ts`, `float.ts` (`MAX_UNIT` e `nextDown`), `dice.ts` (a gramática de `roll` e um cache pequeno e limitado das
+notações) e `scripted.ts` (o motor roteirizado dos testes). **Nenhum trabalho no nível do módulo**: os arrays e os tipos
+tipados são criados na primeira chamada e as constantes `2 ** 53` viram literais, porque um empacotador mantém qualquer chamada de
+topo que não consiga provar inofensiva, e isso fez `clamp` isolado passar de 76 B para 238 B antes da correção.
+
+**Contrato de determinismo (congelado no 1.0).** Vale bit a bit, em qualquer runtime, para tudo o que usa aritmética inteira: o
+motor, `next`, `int` com `luck = 0`, `from`, `pop`, `shuffle`, `sample`, `weighted` com `luck = 0`, `roll` com `luck = 0`, `date`,
+`id`, `uuid`, `bytes`, `fork` e `state`. Para o que usa `Math.pow`, `Math.log` e `Math.cos` (`luck` diferente de zero, `normal`,
+`exponential`) o ECMAScript **não exige** o mesmo arredondamento em todo motor: a saída é idêntica na prática (V8 e
+JavaScriptCore descendem do fdlibm) e o smoke test confere isso no Node, no Deno e no Bun, mas a garantia formal é só a de
+"dentro de um arredondamento". Para uma seed ficam fixos: o motor, a fórmula de `next()`, a rejeição
 (quais bits, quantos sorteios), a transformação do `luck` e o seu limite, a derivação de `fork`, o formato `state` v1, as
 fórmulas de `normal` e `exponential`, a gramática de `roll`, a ordem cumulativa de `weighted`, o layout de `uuid` e `bytes` e a
 codificação de `token`. **Mudar a saída de qualquer método para uma mesma seed é uma versão major; adicionar métodos é minor.**
