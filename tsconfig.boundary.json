@@ -1,0 +1,5 @@
+{
+  "extends": "./tsconfig.core.json",
+  "include": ["test-fixtures/core-boundary/**/*.ts"],
+  "exclude": []
+}
