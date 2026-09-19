@@ -1,4 +1,4 @@
-import { createSeed, createSeededEngine } from "./internal/engines";
+import { createSeed, createSeededEngine, type SeededEngine } from "./internal/engines";
 import { RandomBase } from "./random-base";
 
 /** Options for {@link Random}. */
@@ -7,6 +7,18 @@ export interface RandomOptions {
   seed?: string | number;
   /** How much the outcome methods favour good results: `0` is neutral, negative is unlucky. */
   luck?: number;
+}
+
+/** A snapshot of a {@link Random}: plain JSON, restorable with {@link Random.restore}. */
+export interface RandomState {
+  /** The format version. Always `1` for now. */
+  version: 1;
+  /** The seed of the generator. */
+  seed: string;
+  /** The luck of the generator. */
+  luck: number;
+  /** The four 32-bit words of engine state. */
+  engine: [number, number, number, number];
 }
 
 /**
@@ -29,6 +41,8 @@ export class Random extends RandomBase {
   /** The seed this generator was created with. `new Random(seed)` replays it from the start. */
   readonly seed: string;
 
+  readonly #engine: SeededEngine;
+
   /**
    * Creates a generator.
    *
@@ -40,9 +54,96 @@ export class Random extends RandomBase {
     const { seed, luck = 0 } =
       typeof options === "object" ? options : { seed: options, luck: undefined };
     const resolved = seed === undefined ? createSeed() : String(seed);
-    super(createSeededEngine(resolved), luck);
+    const engine = createSeededEngine(resolved);
+    super(engine, luck);
     this.seed = resolved;
+    this.#engine = engine;
   }
+
+  /**
+   * A new generator that is independent of this one and always the same for the same parent seed
+   * and keys. It does **not** consume this generator, and does not depend on how much it has been
+   * used: forking `("chunk", 3, 4)` before or after `("chunk", 0, 0)` gives the same stream. Use it
+   * to give every part of a procedural world, or every test, its own reproducible randomness.
+   *
+   * The child's seed is the JSON of `[parentSeed, ...keys]`, so `fork("a/b")` never collides with
+   * `fork("a", "b")`, and `new Random(child.seed)` replays the child. It inherits the luck.
+   *
+   * @example
+   * ```ts
+   * const world = new Random("world-7");
+   * world.fork("terrain", 3, 4).int(0, 255); // the same value every time
+   * ```
+   *
+   * @param keys - Strings and finite numbers that name the stream.
+   * @returns The child generator.
+   * @throws {RangeError} When a key is a number that is not finite (JSON would turn it into `null`).
+   */
+  fork(...keys: (string | number)[]): Random {
+    for (const key of keys) {
+      if (typeof key === "number" && !Number.isFinite(key)) {
+        throw new RangeError(`fork() keys must be strings or finite numbers, got ${key}.`);
+      }
+    }
+    return new Random({ seed: JSON.stringify([this.seed, ...keys]), luck: this.luck });
+  }
+
+  /**
+   * A snapshot of where this generator is, as plain JSON. {@link Random.restore} continues from
+   * exactly this point: save a game, replay a bug.
+   *
+   * @example
+   * ```ts
+   * const saved = JSON.stringify(rng.state());
+   * Random.restore(JSON.parse(saved)); // continues where `rng` is now
+   * ```
+   *
+   * @returns The state.
+   */
+  state(): RandomState {
+    return { version: 1, seed: this.seed, luck: this.luck, engine: this.#engine.snapshot() };
+  }
+
+  /**
+   * Rebuilds a generator from {@link Random.state}. The result is independent of the original.
+   *
+   * @example
+   * ```ts
+   * const copy = Random.restore(rng.state());
+   * copy.next() === rng.next(); // => true
+   * ```
+   *
+   * @param state - A value produced by `state()`, possibly after a trip through JSON.
+   * @returns A generator that continues from that point.
+   * @throws {TypeError} When `state` does not have the expected shape.
+   * @throws {RangeError} When the version is unsupported or the luck is not finite.
+   */
+  static restore(state: RandomState): Random {
+    if (typeof state !== "object" || state === null || Array.isArray(state)) {
+      throw new TypeError("Random.restore() needs the object returned by state().");
+    }
+    if (state.version !== 1) {
+      throw new RangeError(
+        `Random.restore() does not support state version ${String(state.version)}.`,
+      );
+    }
+    if (typeof state.seed !== "string")
+      throw new TypeError("Random.restore() needs a string seed.");
+    if (!isEngineState(state.engine)) {
+      throw new TypeError("Random.restore() needs an engine of four unsigned 32-bit integers.");
+    }
+    const rng = new Random({ seed: state.seed, luck: state.luck });
+    rng.#engine.restore(state.engine);
+    return rng;
+  }
+}
+
+function isEngineState(value: unknown): value is [number, number, number, number] {
+  return (
+    Array.isArray(value) &&
+    value.length === 4 &&
+    value.every((word) => Number.isInteger(word) && word >= 0 && word < 4294967296)
+  );
 }
 
 /**
