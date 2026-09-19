@@ -75,7 +75,8 @@
     "check:boundary": "node scripts/check-core-boundary.mjs",
     "check:package": "publint && attw --pack . --profile node16",
     "smoke": "node scripts/smoke.mjs",
-    "check": "npm run lint && npm run format:check && npm run typecheck && npm run check:boundary && npm run test:coverage && npm run build && npm run check:package && npm run smoke"
+    "check": "npm run lint && npm run format:check && npm run typecheck && npm run check:boundary && npm run test:coverage && npm run build && npm run check:package && npm run size && npm run smoke",
+    "size": "size-limit"
   },
   "peerDependencies": {
     "react": ">=18",
@@ -93,6 +94,7 @@
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
     "@eslint/js": "^10.0.1",
+    "@size-limit/preset-small-lib": "^14.0.0",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/react": "^16.3.3",
     "@types/node": "^26.6.2",
@@ -110,9 +112,24 @@
     "publint": "^0.3.24",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
+    "size-limit": "^14.0.0",
     "tsdown": "^0.23.0",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.70.0",
     "vitest": "^5.0.1"
-  }
+  },
+  "size-limit": [
+    {
+      "name": "root entrypoint, everything",
+      "path": "dist/index.js",
+      "import": "*",
+      "limit": "1.5 kB"
+    },
+    {
+      "name": "root entrypoint, clamp only",
+      "path": "dist/index.js",
+      "import": "{ clamp }",
+      "limit": "150 B"
+    }
+  ]
 }

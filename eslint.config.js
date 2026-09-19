@@ -33,11 +33,15 @@ export default tseslint.config(
         "error",
         {
           publicOnly: true,
+          exemptOverloadedImplementations: true,
           require: { FunctionDeclaration: true, ClassDeclaration: true, MethodDefinition: true },
-          contexts: ["ExportNamedDeclaration > VariableDeclaration"],
+          contexts: ["ExportNamedDeclaration > VariableDeclaration", "TSDeclareFunction"],
         },
       ],
-      "jsdoc/require-example": "error",
+      "jsdoc/require-example": [
+        "error",
+        { contexts: ["FunctionDeclaration", "TSDeclareFunction"] },
+      ],
     },
   },
   {

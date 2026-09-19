@@ -4,12 +4,41 @@
 //   node scripts/smoke.mjs [path/to/tarball.tgz]   (packs the repo when omitted)
 //   HYRAX_SMOKE_RUNTIMES=deno,bun node scripts/smoke.mjs   (also checks those runtimes)
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
 const NAME = "@gabreusi/hyrax";
 const entrypoints = [NAME, `${NAME}/dom`, `${NAME}/react`];
+
+// A real TypeScript consumer of the public API. `@ts-expect-error` lines make the
+// compile fail if the types ever become looser than intended.
+const CONSUMER = `
+import { alias, clamp, fabricate, isNumeric, toCamelCase, traceHierarchy } from "${NAME}";
+import type { Maybe, Numeric } from "${NAME}";
+
+const aliased = alias({ name: "Alice", age: 30 }, { age: ["years"] as const });
+export const years: number = aliased.years;
+export const limited: number = clamp(15, 0, 10);
+export const camel: string = toCamelCase("hello world");
+export const made: string = fabricate(() => "x");
+export const maybe: Maybe<string> = undefined;
+
+const input: unknown = "12";
+if (isNumeric(input)) {
+  const numeric: Numeric = input;
+  void numeric;
+}
+
+interface Node { parent: Node | null }
+declare const node: Node;
+export const chain: Node[] = traceHierarchy(node, "parent");
+
+// @ts-expect-error clamp only accepts numbers
+clamp("1", 0, 2);
+// @ts-expect-error unknown alias
+void aliased.nope;
+`;
 
 const run = (cmd, args, cwd) =>
   execFileSync(cmd, args, { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "inherit"] });
@@ -37,17 +66,46 @@ try {
 
   const esm = run(
     "node",
-    ["--input-type=module", "-e", `import { noop } from "${NAME}"; console.log(typeof noop);`],
+    ["--input-type=module", "-e", `import { clamp } from "${NAME}"; console.log(clamp(15, 10));`],
     dir,
   ).trim();
-  const cjs = run("node", ["-e", `console.log(typeof require("${NAME}").noop);`], dir).trim();
-  if (esm !== "function" || cjs !== "function") {
-    throw new Error(`noop is ${esm} (ESM) / ${cjs} (CJS), expected function / function`);
+  const cjs = run("node", ["-e", `console.log(require("${NAME}").clamp(15, 10));`], dir).trim();
+  if (esm !== "10" || cjs !== "10") {
+    throw new Error(`clamp(15, 10) gave ${esm} (ESM) / ${cjs} (CJS), expected 10 / 10`);
+  }
+
+  // Type-check a consumer against the installed package. Needs the repo's own
+  // TypeScript, so it is skipped where dependencies are not installed.
+  const tsc = resolve(process.cwd(), "node_modules/typescript/lib/tsc.js");
+  const typed = existsSync(tsc);
+  if (typed) {
+    writeFileSync(join(dir, "consumer.mts"), CONSUMER);
+    for (const [module, moduleResolution] of [
+      ["nodenext", "nodenext"],
+      ["esnext", "bundler"],
+    ]) {
+      run(
+        "node",
+        [
+          tsc,
+          "--noEmit",
+          "--strict",
+          "--target",
+          "es2022",
+          "--module",
+          module,
+          "--moduleResolution",
+          moduleResolution,
+          "consumer.mts",
+        ],
+        dir,
+      );
+    }
   }
 
   const runtimes = (process.env.HYRAX_SMOKE_RUNTIMES ?? "").split(",").filter(Boolean);
   const code = `${entrypoints.map((id, i) => `import * as m${i} from "${id}";`).join("")}
-    if (typeof m0.noop !== "function") throw new Error("noop missing");`;
+    if (m0.clamp(15, 10) !== 10) throw new Error("clamp broken");`;
   for (const runtime of runtimes) {
     if (runtime === "deno") run("deno", ["eval", "--node-modules-dir=manual", code], dir);
     else if (runtime === "bun") run("bun", ["-e", code], dir);
@@ -56,6 +114,7 @@ try {
 
   console.log(
     `Smoke test passed: ${entrypoints.length} entrypoints x (ESM + CJS)` +
+      (typed ? " + consumer types" : "") +
       (runtimes.length ? ` + ${runtimes.join(", ")}` : ""),
   );
 } finally {
