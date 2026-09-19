@@ -1,5 +1,6 @@
 import { createSeed, createSeededEngine, type SeededEngine } from "./internal/engines";
 import { RandomBase } from "./random-base";
+import { SecureRandom } from "./secure-random";
 
 /** Options for {@link Random}. */
 export interface RandomOptions {
@@ -58,6 +59,24 @@ export class Random extends RandomBase {
     super(engine, luck);
     this.seed = resolved;
     this.#engine = engine;
+  }
+
+  /**
+   * A generator backed by `crypto.getRandomValues`, for tokens and anything that must be
+   * unpredictable. It has the same methods, no seed and no `state`, and cannot be replayed.
+   *
+   * @example
+   * ```ts
+   * const secure = Random.secure();
+   * secure.token(); // 32 random bytes as base64url
+   * ```
+   *
+   * @param options - `luck` bends the outcome methods, as it does for a seeded generator.
+   * @returns The secure generator.
+   * @throws {Error} When the runtime has no `crypto.getRandomValues`.
+   */
+  static secure(options: { luck?: number } = {}): SecureRandom {
+    return new SecureRandom(options);
   }
 
   /**
