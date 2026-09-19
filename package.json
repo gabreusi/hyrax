@@ -124,13 +124,31 @@
       "name": "root entrypoint, everything",
       "path": "dist/index.js",
       "import": "*",
-      "limit": "1.5 kB"
+      "limit": "6 kB"
     },
     {
       "name": "root entrypoint, clamp only",
       "path": "dist/index.js",
       "import": "{ clamp }",
       "limit": "150 B"
+    },
+    {
+      "name": "root entrypoint, Random only",
+      "path": "dist/index.js",
+      "import": "{ Random }",
+      "limit": "4 kB"
+    },
+    {
+      "name": "root entrypoint, StringBuilder only",
+      "path": "dist/index.js",
+      "import": "{ StringBuilder }",
+      "limit": "400 B"
+    },
+    {
+      "name": "root entrypoint, Suspend only",
+      "path": "dist/index.js",
+      "import": "{ Suspend }",
+      "limit": "700 B"
     }
   ]
 }
