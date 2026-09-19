@@ -283,14 +283,51 @@ A lógica fica em `/dom`, sem framework. O `/react` só a embrulha. Quem usa Vue
 
 ### `/dom` (só browser)
 
-Todas as funções são seguras em SSR: sem `document`, devolvem o fallback em vez de lançar.
+Sem dependências e **autocontido**: não importa nada de `src/core` (um import faria o build emitir um chunk compartilhado e
+amarraria os dois entrypoints por uma função de uma linha). Nada roda no import: só dentro das funções.
+
+Todas as funções são seguras em SSR: sem `document`, devolvem o fallback (ou uma função que não faz nada) em vez de lançar.
 
 | API | Função |
 |---|---|
-| `getCSSVar(name, fallback?)` | Lê de `document.documentElement`, com `.trim()` no valor |
-| `toPixels(value, element?)` | Resolve `"2em"`, `"50%"`, `"10dvh"`, `"var(--gap)"` e `"--gap"`. O `element` define o contexto de `em` e `%` (padrão `body`) |
-| `listen(target, type, handler, options?)` | `addEventListener` tipado que devolve a função de desinscrever |
-| `onClickOutside(targets, handler, options?)` | Usa `composedPath()` (Shadow DOM e nós removidos durante o clique). Opção `requireInsideFirst` (padrão `false`) reproduz a exigência antiga do `BlurListener`. Devolve a função de desinscrever |
+| `getCSSVar(name, fallback?)` | Lê de `document.documentElement`, com `.trim()`. Valor ausente ou vazio devolve o `fallback` (qualquer tipo; `null` por padrão). Uma variável definida só no `<body>` não é vista |
+| `toPixels(value, element?)` | Resolve `"2em"`, `"50%"`, `"10dvh"`, `calc()`, `min()`, `var(--gap)` e `"--gap"`. O `element` (padrão `<body>`) é o contexto de `em`, `%` e das variáveis. Aceita **negativos** (`-1rem`). Um número passa direto. Devolve **`NaN`** quando não consegue resolver |
+| `listen(target, type, handler, options?)` | `addEventListener` tipado (janela, documento, elemento ou qualquer `EventTarget`) que devolve a função de desinscrever. Alvo `null`/`undefined` não faz nada |
+| `onClickOutside(targets, handler, options?)` | Chama o `handler` para um toque fora dos `targets`. Devolve a função de desinscrever |
+
+**`toPixels`.** Mede com um elemento auxiliar dentro do `element`, sem altura, invisível e removido depois (mesmo se algo lançar). O
+valor vai em **`margin-left`** e não em `width`, porque `width` recusa negativos. As `var()` são resolvidas pela própria biblioteca
+antes de medir (com fallbacks aninhados e proteção contra ciclos), porque uma `var()` que o navegador não resolve faz a propriedade
+"não valer" e a medição devolveria, em silêncio, a largura do contêiner. `auto`, `inherit`, `initial`, `unset` e `revert` são
+recusados (dão `NaN`), porque um navegador os mede como `0px`. **Precisa de um motor de layout:** um elemento com `display: none`, ou
+solto do documento, dá `NaN` para `%`. O retorno é `NaN`, e não `0`, porque `0` é um tamanho válido e um `NaN` não se confunde com ele.
+
+**`onClickOutside`.** Escuta `pointerdown` no `document`, **na fase de captura**, por padrão (cobre mouse, toque e caneta, e um
+`stopPropagation()` interno não esconde o toque). Decide "dentro" pelo **`composedPath()`**, que é fixado no despacho: por isso
+enxerga um nó que um handler anterior removeu e atravessa Shadow DOM (onde `event.target` chega retargetado para o host). Opções:
+
+| Opção | Padrão | Efeito |
+|---|---|---|
+| `event` | `"pointerdown"` | Qualquer evento do `document` (`"click"`, `"mousedown"`, `"focusin"`...); o tipo do `handler` acompanha |
+| `capture` | `true` | Escuta na captura; `false` escuta no borbulhamento |
+| `ignore` | nenhum | Elementos que contam como "dentro", tipicamente o botão que abre o popup (evita fechar e reabrir no mesmo clique) |
+| `requireInsideFirst` | `false` | O comportamento antigo do `BlurListener`: só chama depois de um toque *dentro*, e só volta a chamar depois de outro |
+
+`targets` aceita um elemento, uma lista, ou uma **função** lida a cada toque (para refs e elementos que aparecem depois); entradas
+`null`/`undefined` são toleradas.
+
+**Bugs do código legado que isto corrige.** `getBoundingClientRect` e `getCSSProperties` saem. O `useHTMLEventListener` chamava
+`removeEventListener(type, callback)` sem repassar a captura, então um listener de captura **nunca** era removido. O
+`getPropertySize` media com `position: fixed`, então `%` era relativo à janela e não ao contêiner. Uma variável ausente medida
+por `toPixels` devolvia a largura do pai. O `BlurListener` decidia "dentro" subindo `parentElement`, que não atravessa Shadow DOM
+nem enxerga nó removido.
+
+**Testes.** O `happy-dom` não é um navegador: não resolve `%`, `dvh` nem `calc()`; não herda variáveis de `<html>` para `<body>`; não
+retarget eventos de Shadow DOM; calcula `composedPath()` na hora da chamada (e não no despacho); e remove um listener de captura
+mesmo quando a remoção esquece a flag. Testes desses comportamentos **passam lá sem provar nada**. Por isso `/dom` tem três tipos
+de teste: `nome.test.ts` (`happy-dom`: lógica, eventos, limpeza), `nome.ssr.test.ts` (Node puro, com
+`// @vitest-environment node`: o fallback em vez de lançar) e `nome.browser.test.ts` (**Chromium real**, pelo modo *browser* do Vitest
+com Playwright: layout, Shadow DOM, cliques reais com `userEvent`, e as regressões que o `happy-dom` não perceberia).
 
 ### `/react` (React >= 18, testado em 18 e 19)
 
@@ -317,16 +354,19 @@ Todas as funções são seguras em SSR: sem `document`, devolvem o fallback em v
 ### Tooling
 - tsdown (ESM + CJS + `.d.ts`); npm (mantém o lockfile atual). TypeScript fixado em `~6.0` (não 7.x):
   `typescript-eslint` declara suporte a `typescript < 6.1`.
-- Vitest com testes ao lado do código, `happy-dom` e Testing Library para `/dom` e `/react`, `expectTypeOf`
-  para tipos públicos, `fast-check` para propriedades (`clamp`, `remap`, casing, `shuffle`), vetores fixos para
-  `Random`. Cobertura mínima de 95% no `core`.
+- Vitest com testes ao lado do código, `happy-dom` e Testing Library para `/react`, `expectTypeOf` para tipos
+  públicos, `fast-check` para propriedades (`clamp`, `remap`, casing, `shuffle`), vetores fixos para `Random`. `/dom`
+  também roda em **Chromium real** (`@vitest/browser-playwright`, projeto `dom-browser`). Cobertura mínima de 95% no
+  `core` e no `dom`, somando os três ambientes. `npm test` roda só o que não precisa de navegador; `npm run
+  test:coverage` roda tudo e exige `npx playwright install chromium` uma vez.
 - ESLint (flat config, typescript-eslint, `react-hooks` só em `/react`) e Prettier. Uma regra exige TSDoc com
   `@example` em todo símbolo exportado.
 - `size-limit` por entrypoint, com o limite guardado no CI.
 
 ### CI (GitHub Actions)
 Em todo PR: lint; typecheck por entrypoint; testes em Node 22, 24 e 26 (o Vitest 5 exige Node >= 22.12, e o
-Node 20 está em EOL desde abril/2026); `/react` contra React 18 e 19; build; `publint`;
+Node 20 está em EOL desde abril/2026), sem navegador; um job com **Chromium** que roda todos os projetos com a cobertura;
+`/react` contra React 18 e 19; build; `publint`;
 `@arethetypeswrong/cli` com `--profile node16`; smoke test do pacote construído, instalado a partir do tarball,
 em Node 20, 22, 24 e 26 por ESM e CJS (Bun e Deno como jobs best-effort); `size-limit`; build do site de docs.
 `engines.node` continua `>=20`: o código é ES2022 e o smoke test cobre o Node 20. Consumidores em TypeScript
