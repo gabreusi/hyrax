@@ -1,0 +1,85 @@
+name: Release
+
+# Opens (or updates) the "Version Packages" pull request while there are changesets, and publishes to
+# npm when that pull request is merged. It publishes with npm trusted publishing: there is no npm token
+# anywhere, GitHub proves to npm which repository and workflow this is (OIDC), and the package gets a
+# provenance statement.
+#
+# It does nothing until the repository variable RELEASE_ENABLED is "true". Set it after the trusted
+# publisher is configured on npm, which can only be done once the package exists, so the first version is
+# published by hand (see "Releasing" in CONTRIBUTING.md). The filename of this workflow is part of that
+# configuration: renaming it breaks publishing until npm is told.
+
+on:
+  push:
+    branches: [main]
+
+permissions: {}
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Version or publish
+    if: ${{ vars.RELEASE_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # the version branch, the git tags and the GitHub releases
+      pull-requests: write # the "Version Packages" pull request
+      id-token: write # npm trusted publishing (OIDC) and provenance
+    outputs:
+      published: ${{ steps.changesets.outputs.published }}
+      publishedPackages: ${{ steps.changesets.outputs.publishedPackages }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          # Never cache in a release build: a poisoned cache would end up in the package.
+          package-manager-cache: false
+      - run: npm ci
+      # Trusted publishing needs npm 11.5.1 or newer (Node 24 ships a newer one).
+      - name: Check the npm version
+        run: |
+          v=$(npm --version)
+          echo "npm $v"
+          [ "$(printf '%s\n11.5.1\n' "$v" | sort -V | head -1)" = "11.5.1" ]
+      - run: npm test
+      - id: changesets
+        uses: changesets/action@v2
+        with:
+          version: npm run changeset:version
+          publish: npm run release
+          title: "chore: version packages"
+          commit: "chore: version packages"
+          createGithubReleases: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # What npm serves is what gets tested: the version that was just published is installed from the
+  # registry and run through the same smoke test as the tarball, and its provenance is checked.
+  verify:
+    name: Verify the published package
+    needs: release
+    if: ${{ needs.release.outputs.published == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - run: npm ci
+      - name: Smoke test the version on the registry
+        env:
+          PUBLISHED: ${{ needs.release.outputs.publishedPackages }}
+        run: |
+          version=$(node -e 'console.log(JSON.parse(process.env.PUBLISHED)[0].version)')
+          echo "Verifying @gabreusi/hyrax@$version"
+          node scripts/smoke.mjs "@gabreusi/hyrax@$version"
+          npm view "@gabreusi/hyrax@$version" dist.attestations.provenance.predicateType --json

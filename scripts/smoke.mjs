@@ -2,6 +2,7 @@
 // entrypoint through ESM and CJS, exactly as a consumer would.
 //
 //   node scripts/smoke.mjs [path/to/tarball.tgz]   (packs the repo when omitted)
+//   node scripts/smoke.mjs @gabreusi/hyrax@1.0.0-rc.0   (installs from the registry: what npm serves)
 //   HYRAX_SMOKE_RUNTIMES=deno,bun node scripts/smoke.mjs   (also checks those runtimes)
 //   HYRAX_SMOKE_REACT=18 node scripts/smoke.mjs   (React 18 and its types instead of the latest)
 import { execFileSync } from "node:child_process";
@@ -136,8 +137,11 @@ const run = (cmd, args, cwd) =>
 
 const dir = mkdtempSync(join(tmpdir(), "hyrax-smoke-"));
 try {
-  let tarball = process.argv[2] && resolve(process.argv[2]);
-  if (!tarball) {
+  // A tarball, or (when the argument is not a file) a package spec such as `@gabreusi/hyrax@1.0.0`.
+  const argument = process.argv[2];
+  const fromRegistry = argument !== undefined && !existsSync(resolve(argument));
+  let tarball = argument && !fromRegistry ? resolve(argument) : undefined;
+  if (!argument) {
     // `npm pack --json` prints an array up to npm 11 and an object keyed by package name on npm 12.
     const packed = JSON.parse(
       run("npm", ["pack", "--json", "--pack-destination", dir], process.cwd()),
@@ -145,22 +149,35 @@ try {
     const { filename } = Array.isArray(packed) ? packed[0] : Object.values(packed)[0];
     tarball = join(dir, filename);
   }
+  const target = fromRegistry ? argument : tarball;
 
   writeFileSync(join(dir, "package.json"), JSON.stringify({ name: "smoke", private: true }));
   // react/react-dom are optional peers that /react needs; their types are needed to type-check a
   // consumer. HYRAX_SMOKE_REACT=18 checks the package against React 18 and its types instead.
   const at = process.env.HYRAX_SMOKE_REACT ? `@${process.env.HYRAX_SMOKE_REACT}` : "";
-  run(
-    "npm",
-    [
-      "install",
-      "--no-audit",
-      "--no-fund",
-      tarball,
-      ...["react", "react-dom", "@types/react", "@types/react-dom"].map((name) => name + at),
-    ],
-    dir,
-  );
+  const install = () =>
+    run(
+      "npm",
+      [
+        "install",
+        "--no-audit",
+        "--no-fund",
+        target,
+        ...["react", "react-dom", "@types/react", "@types/react-dom"].map((name) => name + at),
+      ],
+      dir,
+    );
+  // A version that was just published can take a moment to be served: try again before giving up.
+  for (let attempt = 1; ; attempt++) {
+    try {
+      install();
+      break;
+    } catch (error) {
+      if (!fromRegistry || attempt === 6) throw error;
+      console.error(`${target} is not available yet (try ${attempt} of 6), waiting...`);
+      await new Promise((done) => setTimeout(done, 10_000));
+    }
+  }
 
   for (const id of entrypoints) {
     run("node", ["--input-type=module", "-e", `await import("${id}");`], dir);

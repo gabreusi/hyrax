@@ -411,15 +411,48 @@ Em todo PR: lint; typecheck por entrypoint; testes em Node 22, 24 e 26 (o Vitest
 Node 20 está em EOL desde abril/2026), sem navegador; um job com **Chromium** que roda todos os projetos com a cobertura;
 `/react` contra React 18 e 19; build; `publint`;
 `@arethetypeswrong/cli` com `--profile node16`; smoke test do pacote construído, instalado a partir do tarball,
-em Node 20, 22, 24 e 26 por ESM e CJS (Bun e Deno como jobs best-effort); `size-limit`; build do site de docs.
+em Node 20, 22, 24 e 26 por ESM e CJS (Bun e Deno como jobs best-effort); esbuild, Vite e webpack sobre o tarball; `size-limit`; build do site de docs.
 `engines.node` continua `>=20`: o código é ES2022 e o smoke test cobre o Node 20. Consumidores em TypeScript
 precisam de `moduleResolution` `node16`, `nodenext` ou `bundler` para resolver `/dom` e `/react`.
 
 ### Release
-- changesets (PR de versão e `CHANGELOG` automáticos).
-- Publicação por **trusted publishing via OIDC**, sem token npm de longa duração e com provenance.
-- Primeira publicação: `1.0.0-rc.1` na tag `next`. Depois de validar em uso real, `1.0.0`.
-- No 1.0, `npm deprecate @gpsign/hyrax` apontando para `@gabreusi/hyrax`.
+
+Detalhado em 2026-09-21, ao planejar a Fase 6.
+
+- **Changesets** (`@changesets/cli` 3, com `@changesets/changelog-github`): cada PR que muda o que o usuário vê traz um
+  changeset; na `main`, a action abre o PR "Version Packages" (versão e `CHANGELOG` automáticos), e **mesclar esse PR
+  publica**, cria a tag `vX.Y.Z` e o GitHub release. A configuração é escrita à mão: o `changeset init` da versão 3 é interativo.
+- **Pré-release em modo `rc`.** O Changesets numera a primeira como **`1.0.0-rc.0`** (e não `rc.1`), depois `rc.1`, `rc.2`... e
+  ao sair do modo (`changeset pre exit`) sai `1.0.0`. A dist-tag é o **nome do modo, `rc`** (e não `next`):
+  `npm install @gabreusi/hyrax@rc`. É um desvio do que o spec dizia (`1.0.0-rc.1` na tag `next`), pago por não brigar com a
+  ferramenta.
+- **Publicação por trusted publishing (OIDC)**, sem token npm em lugar nenhum e com provenance, pelo workflow
+  `release.yml` (o nome do arquivo faz parte da configuração no npm). Exige npm 11.5.1 ou mais novo e Node 22.14 ou mais novo
+  (o CI usa o Node 24), `id-token: write`, e o `repository.url` do `package.json` igual ao repositório. Não roda em runner
+  próprio, e o cache do gerenciador de pacotes fica desligado no job de release.
+- **O pacote precisa existir antes de o trusted publisher ser configurado** (`npm trust github`, npm 11.15 ou mais novo, conta com
+  2FA). Logo, **a primeira versão (`1.0.0-rc.0`) é publicada à mão, uma vez**, por quem é dono do escopo `@gabreusi`, a partir
+  de um checkout limpo da `main` no commit da versão, e **não tem provenance**. Depois disso o `npm trust` configura o
+  `release.yml` e todo release passa pelo workflow. Recomenda-se que a **primeira publicação pelo workflow seja um `rc.1`**
+  (um changeset `patch` pequeno) para provar o caminho OIDC antes do `1.0.0`.
+- **O workflow só faz algo com a variável de repositório `RELEASE_ENABLED` igual a `true`** (a mesma ideia do `DOCS_DEPLOY`):
+  ela é ligada depois que o trusted publisher existe. O PR "Version Packages" é aberto com o `GITHUB_TOKEN`, então exige
+  Settings, Actions, General, "Allow GitHub Actions to create and approve pull requests", e **não dispara o CI** (regra do
+  GitHub para eventos do `GITHUB_TOKEN`); ele só mexe em `package.json`, `CHANGELOG.md` e `.changeset/`, e o job de release roda
+  `npm test` antes de publicar.
+- **O que sobe é conferido:** `scripts/check-pack.mjs` (parte do `check:package`) exige que o tarball tenha só `dist/`, o
+  README, a LICENSE e o `package.json`, com os três entrypoints nos dois formatos e menos de 100 kB; e o `prepublishOnly`
+  (build, `publint` e `check-pack --publish`) recusa um pacote `private` ou ainda em `0.0.0`. O `attw` fica de fora do
+  `prepublishOnly`, porque o `npm publish --dry-run` vaza `npm_config_dry_run` para o `npm pack` que ele roda.
+- **Depois de publicar, o que o npm serve é testado:** o job `verify` do `release.yml` instala a versão recém-publicada do
+  registro (`scripts/smoke.mjs @gabreusi/hyrax@versão`, com tentativas, porque o registro demora a servir) e confere a
+  atestação de provenance.
+- **Consumidores reais:** `scripts/smoke-bundlers.mjs` empacota o tarball com esbuild, Vite 8 e webpack 5 (majors fixados) e
+  confere o tree-shaking (uma função importada não traz o resto) e o tamanho, com casos "tudo de um entrypoint" que provam que
+  as marcas procuradas existem. Roda no `check` e num job do CI.
+- No 1.0, `npm deprecate @gpsign/hyrax "..."` apontando para `@gabreusi/hyrax` (o dono do pacote antigo, com 2FA).
+- **O que eu (o assistente) não faço:** publicar, entrar no npm, deprecar, mudar configuração ou variáveis do repositório.
+  Tudo isso é ação do dono, listada no plano.
 
 ### Higiene
 `LICENSE` (MIT), `CONTRIBUTING`, `.idea` no `.gitignore`, `.npmrc` removido, `package.json` com `repository`,
@@ -509,15 +542,25 @@ Cada fase vira um plano próprio. As fases 1 a 4 dependem só da fase 0 e podem 
 
 Não bloqueiam o design, mas precisam ser resolvidas antes da fase 6.
 
-1. O usuário ou org `gabreusi` precisa existir no npm e ser dono do escopo `@gabreusi` (não foi possível
-   verificar a partir do repositório).
-2. Definir o titular do copyright no `LICENSE` (o `package.json` atual lista o autor como `gpsign`).
-3. Abrir a disputa pelo nome `hyrax` no npm (pacote de terceiro sem publicações desde 2017). Se vier, trocar
-   o nome é uma linha no `package.json`, e o rc ainda pode sair sob `@gabreusi/hyrax`.
+1. O usuário ou org `gabreusi` precisa existir no npm e ser dono do escopo `@gabreusi`. **Verificado em 2026-09-21:** o
+   registro responde 404 para `@gabreusi/hyrax` (ainda não existe) e a máquina local não está logada no npm (`ENEEDAUTH`),
+   então só o dono confirma o escopo, ao rodar `npm whoami` e o primeiro `npm publish`.
+2. ~~Definir o titular do copyright no `LICENSE`.~~ **Resolvido na Fase 0:** o `LICENSE` e o `author` do `package.json` dizem
+   Gabriel Pantano Signorini.
+3. A disputa pelo nome `hyrax` no npm. **Pesquisado em 2026-09-21: não vale esperar por ela.** O `hyrax` existente é de
+   outro autor (`petermetz`, GPL-3.0, "Embedded messaging broker", criado em 2017, com as versões 1.0.0 e 0.0.1 e o último
+   registro em 2022), e a política de disputas do npm diz que **não transfere um nome "simplesmente porque outro usuário quer o
+   nome"** e que só há squatting quando "o pacote não tem função genuína". O 1.0 sai como `@gabreusi/hyrax`. Reivindicar o
+   nome sem escopo só cabe por marca registrada, e fica fora do plano.
 4. O `gh` local está autenticado como `gpsign`, mas o remote é `gabreusi/hyrax`. O CI usa a identidade do
    próprio Actions, mas pushes locais podem exigir trocar a conta.
-5. Configurar o trusted publisher no npm (repositório e workflow) antes do primeiro `publish`.
-6. Habilitar o GitHub Pages (Settings, Pages, Source: *GitHub Actions*) e criar a variável de repositório `DOCS_DEPLOY` igual a
-   `true`. O site é construído e checado em todo PR, mas só é publicado depois disso.
-7. Na Fase 6, junto com o primeiro `publish`: tirar o aviso "Not published yet" do *Getting started* e a nota de *Status* do
+5. Configurar o trusted publisher no npm. **Só é possível depois de a primeira versão existir** (veja "Release"), com
+   `npm trust github @gabreusi/hyrax --file release.yml --repo gabreusi/hyrax --allow-publish`.
+6. ~~Habilitar o GitHub Pages e criar `DOCS_DEPLOY`.~~ **Feito em 2026-09-21:** o Pages publica por GitHub Actions, a variável
+   `DOCS_DEPLOY` é `true`, e o site está em https://gabreusi.github.io/hyrax/ (o primeiro deploy passou).
+7. Na Fase 6, depois do primeiro `publish` (o PR de documentação da Fase 6): tirar o aviso "Not published yet" do *Getting started* e a nota de *Status* do
    README, e pôr o selo do npm no README.
+8. Antes de ligar o `release.yml`: Settings, Actions, General, "Allow GitHub Actions to create and approve pull requests", e a
+   variável de repositório `RELEASE_ENABLED` igual a `true`.
+9. No 1.0: `npm deprecate @gpsign/hyrax` (o registro mostra a `0.6.0` como a última publicada; a tag `legacy-0.6.1` do git
+   não corresponde a uma publicação).
