@@ -3,6 +3,7 @@
 //
 //   node scripts/smoke.mjs [path/to/tarball.tgz]   (packs the repo when omitted)
 //   HYRAX_SMOKE_RUNTIMES=deno,bun node scripts/smoke.mjs   (also checks those runtimes)
+//   HYRAX_SMOKE_REACT=18 node scripts/smoke.mjs   (React 18 and its types instead of the latest)
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -30,6 +31,13 @@ const TRANSCENDENTAL_EXPECTED = "0.5756361196616097 17 false 0.9888625997383569 
 const DOM_SSR =
   '(dom) => [dom.getCSSVar("--x", "fallback"), Number.isNaN(dom.toPixels("2em")), typeof dom.listen(null, "click", () => {}), typeof dom.onClickOutside(null, () => {})].join(" ")';
 const DOM_SSR_EXPECTED = "fallback true function function";
+
+// /react must render on the server (no document, no effects) and, being all hooks and components,
+// must say "use client" so that a Server Components bundler knows where the client boundary is.
+// Only the /react entrypoint says it: the root and /dom stay usable from a server component.
+const REACT_SSR =
+  '(react, h, renderToString) => { const Page = () => { react.useForceUpdate(); react.useInterval(() => {}, 10, { autoStart: true }); react.useEventListener(globalThis.window, "resize", () => {}); react.useClickOutside(null, () => {}); return h(react.hx.div, { display: "flex" }, h(react.Portal, null, "popup"), h(react.hx.canvas, { width: 5 }), h("p", null, "ok")); }; return renderToString(h(Page)); }';
+const REACT_SSR_EXPECTED = '<div style="display:flex"><canvas width="5"></canvas><p>ok</p></div>';
 
 // A real TypeScript consumer of the public API. `@ts-expect-error` lines make the
 // compile fail if the types ever become looser than intended.
@@ -91,6 +99,38 @@ clamp("1", 0, 2);
 void aliased.nope;
 `;
 
+const CONSUMER_REACT = `
+import { hx, Portal, useClickOutside, useEventListener, useForceUpdate, useInterval } from "${NAME}/react";
+import type { HxProps, PortalProps } from "${NAME}/react";
+import { useRef } from "react";
+
+export function Demo(props: PortalProps) {
+  const box = useRef<HTMLDivElement>(null);
+  const opener = useRef<HTMLButtonElement>(null);
+  const forceUpdate: () => void = useForceUpdate();
+  const timer: { start: () => void; stop: () => void; isRunning: boolean } = useInterval(forceUpdate, 1000, { autoStart: true, immediate: true });
+  useEventListener(window, "resize", (event: UIEvent) => void event);
+  useEventListener(box, "click", (event: MouseEvent) => void event);
+  useClickOutside(box, (event: PointerEvent) => void event, { ignore: opener });
+  const canvas: HxProps<"canvas"> = { width: 300, height: 150 };
+  return (
+    <hx.div display="flex" padding="8px" ref={box} rendered={timer.isRunning}>
+      <hx.canvas {...canvas} backgroundColor="red" />
+      <Portal {...props} container={document.body}>popup</Portal>
+    </hx.div>
+  );
+}
+
+// @ts-expect-error resize gives a UIEvent, not a KeyboardEvent
+useEventListener(window, "resize", (event: KeyboardEvent) => void event);
+// @ts-expect-error the delay is required
+useInterval(() => {});
+// @ts-expect-error a div has no href
+void (<hx.div href="/" />);
+// @ts-expect-error opacity is a number or a string, not a boolean
+void (<hx.div opacity={true} />);
+`;
+
 const run = (cmd, args, cwd) =>
   execFileSync(cmd, args, { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "inherit"] });
 
@@ -107,8 +147,20 @@ try {
   }
 
   writeFileSync(join(dir, "package.json"), JSON.stringify({ name: "smoke", private: true }));
-  // react/react-dom are optional peers; /react needs them once it has real code.
-  run("npm", ["install", "--no-audit", "--no-fund", tarball, "react", "react-dom"], dir);
+  // react/react-dom are optional peers that /react needs; their types are needed to type-check a
+  // consumer. HYRAX_SMOKE_REACT=18 checks the package against React 18 and its types instead.
+  const at = process.env.HYRAX_SMOKE_REACT ? `@${process.env.HYRAX_SMOKE_REACT}` : "";
+  run(
+    "npm",
+    [
+      "install",
+      "--no-audit",
+      "--no-fund",
+      tarball,
+      ...["react", "react-dom", "@types/react", "@types/react-dom"].map((name) => name + at),
+    ],
+    dir,
+  );
 
   for (const id of entrypoints) {
     run("node", ["--input-type=module", "-e", `await import("${id}");`], dir);
@@ -160,12 +212,65 @@ try {
     );
   }
 
+  const reactScript = `console.log((${REACT_SSR})(react, h, renderToString));`;
+  const reactEsm = run(
+    "node",
+    [
+      "--input-type=module",
+      "-e",
+      `import * as react from "${NAME}/react"; import { createElement as h } from "react"; import { renderToString } from "react-dom/server"; ${reactScript}`,
+    ],
+    dir,
+  ).trim();
+  const reactCjs = run(
+    "node",
+    [
+      "-e",
+      `const react = require("${NAME}/react"); const { createElement: h } = require("react"); const { renderToString } = require("react-dom/server"); ${reactScript}`,
+    ],
+    dir,
+  ).trim();
+  if (reactEsm !== REACT_SSR_EXPECTED || reactCjs !== REACT_SSR_EXPECTED) {
+    throw new Error(
+      `/react does not render on the server: ESM "${reactEsm}", CJS "${reactCjs}", expected "${REACT_SSR_EXPECTED}"`,
+    );
+  }
+
+  const client = (file) =>
+    run(
+      "node",
+      [
+        "-e",
+        `console.log(require("fs").readFileSync(require.resolve("${NAME}/${file}"), "utf8").startsWith('"use client";'))`,
+      ],
+      dir,
+    ).trim();
+  // Resolved through the package `exports`: a file per entrypoint and per module format.
+  const flags = {
+    react: client("react"),
+    dom: client("dom"),
+    root: run(
+      "node",
+      [
+        "-e",
+        `console.log(require("fs").readFileSync(require.resolve("${NAME}"), "utf8").startsWith('"use client";'))`,
+      ],
+      dir,
+    ).trim(),
+  };
+  if (flags.react !== "true" || flags.dom !== "false" || flags.root !== "false") {
+    throw new Error(
+      `"use client" must be on /react and only there: react=${flags.react} dom=${flags.dom} root=${flags.root}`,
+    );
+  }
+
   // Type-check a consumer against the installed package. Needs the repo's own
   // TypeScript, so it is skipped where dependencies are not installed.
   const tsc = resolve(process.cwd(), "node_modules/typescript/lib/tsc.js");
   const typed = existsSync(tsc);
   if (typed) {
     writeFileSync(join(dir, "consumer.mts"), CONSUMER);
+    writeFileSync(join(dir, "consumer-react.tsx"), CONSUMER_REACT);
     for (const [module, moduleResolution] of [
       ["nodenext", "nodenext"],
       ["esnext", "bundler"],
@@ -176,6 +281,8 @@ try {
           tsc,
           "--noEmit",
           "--strict",
+          "--jsx",
+          "react-jsx",
           "--target",
           "es2022",
           "--module",
@@ -183,6 +290,7 @@ try {
           "--moduleResolution",
           moduleResolution,
           "consumer.mts",
+          "consumer-react.tsx",
         ],
         dir,
       );
@@ -191,8 +299,12 @@ try {
 
   const runtimes = (process.env.HYRAX_SMOKE_RUNTIMES ?? "").split(",").filter(Boolean);
   const code = `${entrypoints.map((id, i) => `import * as m${i} from "${id}";`).join("")}
+    import { createElement as h } from "react";
+    import { renderToString } from "react-dom/server";
     if (m0.clamp(15, 10) !== 10) throw new Error("clamp broken");
     const { Random } = m0;
+    const reactResult = (${REACT_SSR})(m2, h, renderToString);
+    if (reactResult !== '${REACT_SSR_EXPECTED}') throw new Error("/react does not render on the server: " + reactResult);
     const domResult = (${DOM_SSR})(m1);
     if (domResult !== "${DOM_SSR_EXPECTED}") throw new Error("/dom is not safe without a DOM: " + domResult);
     const exact = ${EXACT};
