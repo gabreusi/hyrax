@@ -170,6 +170,83 @@
       "path": "dist/dom.js",
       "import": "{ toPixels }",
       "limit": "900 B"
+    },
+    {
+      "name": "react entrypoint, everything",
+      "path": "dist/react.js",
+      "import": "*",
+      "ignore": [
+        "react",
+        "react-dom",
+        "react/jsx-runtime"
+      ],
+      "limit": "2 kB"
+    },
+    {
+      "name": "react entrypoint, useForceUpdate only",
+      "path": "dist/react.js",
+      "import": "{ useForceUpdate }",
+      "ignore": [
+        "react",
+        "react-dom",
+        "react/jsx-runtime"
+      ],
+      "limit": "150 B"
+    },
+    {
+      "name": "react entrypoint, useEventListener only",
+      "path": "dist/react.js",
+      "import": "{ useEventListener }",
+      "ignore": [
+        "react",
+        "react-dom",
+        "react/jsx-runtime"
+      ],
+      "limit": "450 B"
+    },
+    {
+      "name": "react entrypoint, useClickOutside only",
+      "path": "dist/react.js",
+      "import": "{ useClickOutside }",
+      "ignore": [
+        "react",
+        "react-dom",
+        "react/jsx-runtime"
+      ],
+      "limit": "650 B"
+    },
+    {
+      "name": "react entrypoint, useInterval only",
+      "path": "dist/react.js",
+      "import": "{ useInterval }",
+      "ignore": [
+        "react",
+        "react-dom",
+        "react/jsx-runtime"
+      ],
+      "limit": "400 B"
+    },
+    {
+      "name": "react entrypoint, Portal only",
+      "path": "dist/react.js",
+      "import": "{ Portal }",
+      "ignore": [
+        "react",
+        "react-dom",
+        "react/jsx-runtime"
+      ],
+      "limit": "450 B"
+    },
+    {
+      "name": "react entrypoint, hx only",
+      "path": "dist/react.js",
+      "import": "{ hx }",
+      "ignore": [
+        "react",
+        "react-dom",
+        "react/jsx-runtime"
+      ],
+      "limit": "850 B"
     }
   ]
 }

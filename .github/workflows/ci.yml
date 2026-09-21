@@ -71,6 +71,12 @@ jobs:
       - run: npm ci
       - run: npm install --no-save react@18 react-dom@18 @types/react@18 @types/react-dom@18
       - run: npx vitest run --project react
+      # The source must also compile against the React 18 types, and the built package must work with them.
+      - run: npx tsc -p tsconfig.react.json && npx tsc -p tsconfig.test.json
+      - run: npm run build
+      - run: node scripts/smoke.mjs
+        env:
+          HYRAX_SMOKE_REACT: 18
 
   build:
     name: Build and validate the package
