@@ -1,7 +1,6 @@
 {
   "name": "@gabreusi/hyrax",
   "version": "0.0.0",
-  "private": true,
   "description": "Isomorphic TypeScript toolkit: seeded random, number and string helpers, plus DOM and React utilities.",
   "keywords": [
     "typescript",
@@ -73,7 +72,7 @@
     "format:check": "prettier --check .",
     "typecheck": "tsc -p tsconfig.core.json && tsc -p tsconfig.dom.json && tsc -p tsconfig.react.json && tsc -p tsconfig.test.json",
     "check:boundary": "node scripts/check-core-boundary.mjs",
-    "check:package": "publint && attw --pack . --profile node16",
+    "check:package": "publint && attw --pack . --profile node16 && node scripts/check-pack.mjs",
     "smoke": "node scripts/smoke.mjs",
     "check": "npm run lint && npm run format:check && npm run typecheck && npm run check:boundary && npm run test:coverage && npm run build && npm run check:package && npm run size && npm run smoke && npm run docs:examples && npm run docs:build",
     "size": "size-limit",
@@ -83,7 +82,8 @@
     "docs:examples": "node scripts/check-examples.mjs",
     "docs:build": "npm run docs:api && vitepress build site",
     "docs:dev": "npm run docs:api && vitepress dev site",
-    "docs:preview": "vitepress preview site"
+    "docs:preview": "vitepress preview site",
+    "prepublishOnly": "npm run build && publint && node scripts/check-pack.mjs --publish"
   },
   "peerDependencies": {
     "react": ">=18",
@@ -257,5 +257,8 @@
       ],
       "limit": "850 B"
     }
-  ]
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
 }
