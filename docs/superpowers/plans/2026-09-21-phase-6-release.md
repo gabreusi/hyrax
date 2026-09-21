@@ -46,6 +46,7 @@ Implementei tudo num clone descartável e depois **repeti as tasks 1 a 8 deste p
 | **O registro demora a servir uma versão recém-publicada** | `smoke.mjs` tenta a instalação 6 vezes, com 10 s entre elas, só quando o argumento é uma especificação do registro (testado com uma versão que não existe) |
 | **Os exemplos oficiais do npm** usam `registry-url`, `id-token: write`, `package-manager-cache: false` ("never use caching in release builds") e rodam `npm test` antes de publicar; e exigem que o `repository.url` do `package.json` seja igual ao repositório | O `release.yml` faz o mesmo. O `repository.url` já é `git+https://github.com/gabreusi/hyrax.git` |
 | **O PR "Version Packages" é aberto com o `GITHUB_TOKEN`**, então o GitHub **não dispara os outros workflows nele** (regra do GitHub) e exige a opção "Allow GitHub Actions to create and approve pull requests" | O PR só mexe em `package.json`, `CHANGELOG.md` e `.changeset/`, e o job de release roda `npm test` antes de publicar. A opção é uma configuração sua (roteiro 6b) |
+| **[Achado depois do merge da 6a] O `release.yml` estava errado: a `changesets/action@v2` renomeou as entradas** (`publish` virou `publish-script`, `version` virou `version-script`, `commit` virou `commit-message`, `title` virou `pr-title` e `createGithubReleases` virou `create-github-releases`) **e a saída** (`publishedPackages` virou `published-packages`). Eu validei só a sintaxe do YAML (o `yaml` lê), e o GitHub só valida as entradas quando o passo roda. **Como o dono já tinha criado `RELEASE_ENABLED=true`, ele rodou no commit de merge e falhou na validação das entradas, antes de fazer qualquer coisa** (nada foi publicado nem alterado) | Task 9: o `release.yml` corrigido, e uma checagem nova, `scripts/check-workflows.mjs`, que lê o `action.yml` de cada action de terceiros e confere as entradas que o workflow passa, as obrigatórias que faltam e as saídas (`steps.<id>.outputs.<nome>` e `needs.<job>.outputs.<nome>`) que ele lê. Ela reproduz **exatamente os 6 erros** do release que falhou, e roda no `check` e no job `quality` |
 | **O tarball tem 19 arquivos e 82,5 kB** (`dist/` em ESM e CJS com os tipos, mais README, LICENSE e `package.json`), sem mapas de código-fonte | `check-pack` trava nesse conjunto e em 100 kB: um arquivo a mais (ou mapas, se um dia forem desejados) passa a ser uma decisão |
 | **O `@changesets/cli` 3 exige Node `^22.11 \|\| ^24 \|\| >=26`** | Sem efeito: é devDependency, e o desenvolvimento já exige o Node 22.12 por causa do Vitest |
 
@@ -1122,6 +1123,8 @@ jobs:
           npm view "@gabreusi/hyrax@$version" dist.attestations.provenance.predicateType --json
 ````
 
+> **Correção posterior (Task 9):** as entradas da `changesets/action` acima estão com os nomes da versão 1 e **falharam** no primeiro push para o `main`. A Task 9 traz o arquivo corrigido e a checagem que teria pego o erro. Ao repetir este plano, aplique a Task 9 logo depois desta.
+
 - [ ] **Step 2: O CONTRIBUTING.** Ganha as duas linhas novas da tabela de comandos (`smoke:bundlers` e a descrição do `check:package`) e a seção "Releasing": os changesets, o PR "Version Packages", o modo `rc`, o que é conferido, a variável `RELEASE_ENABLED` e o roteiro da primeira publicação. Substitua o arquivo inteiro.
 
 ````md
@@ -1439,11 +1442,463 @@ Esperado: a árvore limpa; **7 commits** (o plano e o spec, e um por task de 2 a
 
 ---
 
+## Task 9: Corrigir o `release.yml` e conferir os workflows contra as actions (feito depois do merge da 6a)
+
+**Files:** criar `scripts/workflows/checks.test.mjs`, `scripts/workflows/checks.mjs` e `scripts/check-workflows.mjs`; modificar `.github/workflows/release.yml`, `.github/workflows/ci.yml`, `CONTRIBUTING.md`, `package.json` e `package-lock.json`.
+
+O primeiro push para o `main` depois do merge da 6a (com `RELEASE_ENABLED=true` já criada) rodou o `release.yml`, e o passo da `changesets/action` falhou com `Unexpected input(s) 'version', 'publish', 'title', 'commit', 'createGithubReleases'` (veja os achados). Nada foi publicado. A checagem abaixo lê o `action.yml` de cada action e compara com o que o workflow usa.
+
+- [ ] **Step 1: Escrever os testes primeiro.** Com um `metadata` falso no lugar do `action.yml`: uma entrada que a action declara passa; uma que ela não declara é apontada, com a lista do que ela declara; uma entrada obrigatória sem valor padrão que falta; uma saída de passo que não existe (`steps.d.outputs.publishedPackages`, quando a action declara `published-packages`), e uma com hífen que existe; uma saída de outro job (`needs.build.outputs.nope`); ações locais e Docker são ignoradas; e uma action cujo `action.yml` não pôde ser lido **é dita, e não aprovada em silêncio**.
+
+````js
+// scripts/workflows/checks.test.mjs
+import { describe, expect, it } from "vitest";
+import { actionReference, workflowProblems } from "./checks.mjs";
+
+// What the third-party actions declare, standing in for their action.yml files.
+const ACTIONS = {
+  "acme/deploy@v2": {
+    inputs: {
+      "github-token": { default: "x" },
+      "publish-script": {},
+      target: { required: true },
+    },
+    outputs: { published: {}, "published-packages": {} },
+  },
+  "acme/plain@v1": { inputs: {}, outputs: {} },
+};
+const metadata = async (reference) => ACTIONS[reference] ?? null;
+
+const job = (steps, extra = {}) => ({
+  jobs: { main: { "runs-on": "ubuntu-latest", steps, ...extra } },
+});
+
+describe("actionReference", () => {
+  it.each([
+    ["actions/checkout@v7", { repo: "actions/checkout", path: "", ref: "v7" }],
+    ["owner/repo/sub/dir@abc123", { repo: "owner/repo", path: "sub/dir", ref: "abc123" }],
+  ])("reads %s", (uses, expected) => {
+    expect(actionReference(uses)).toEqual(expected);
+  });
+
+  it.each(["./local-action", "docker://alpine:3", "no-ref", "owner/repo"])("skips %s", (uses) => {
+    expect(actionReference(uses)).toBeNull();
+  });
+});
+
+describe("workflowProblems", () => {
+  it("accepts a step that only uses inputs the action declares", async () => {
+    const workflow = job([
+      { uses: "acme/deploy@v2", with: { target: "prod", "publish-script": "npm run x" } },
+    ]);
+    expect(await workflowProblems("w.yml", workflow, metadata)).toEqual([]);
+  });
+
+  it("names an input the action does not declare, and what it declares", async () => {
+    const workflow = job([
+      { uses: "acme/deploy@v2", with: { target: "prod", publish: "npm run x" } },
+    ]);
+    const [problem] = await workflowProblems("w.yml", workflow, metadata);
+    expect(problem).toMatch(/w\.yml/);
+    expect(problem).toMatch(/"publish"/);
+    expect(problem).toMatch(/publish-script/);
+  });
+
+  it("reports every unknown input", async () => {
+    const workflow = job([{ uses: "acme/deploy@v2", with: { target: "prod", a: 1, b: 2 } }]);
+    expect(await workflowProblems("w.yml", workflow, metadata)).toHaveLength(2);
+  });
+
+  it("asks for a required input that has no default", async () => {
+    const workflow = job([{ uses: "acme/deploy@v2", with: {} }]);
+    const [problem] = await workflowProblems("w.yml", workflow, metadata);
+    expect(problem).toMatch(/requires the input "target"/);
+  });
+
+  it("checks that a step output that is used exists", async () => {
+    const workflow = job(
+      [
+        { id: "d", uses: "acme/deploy@v2", with: { target: "t" } },
+        { run: "echo ${{ steps.d.outputs.publishedPackages }}" },
+      ],
+      { outputs: { ok: "${{ steps.d.outputs.published }}" } },
+    );
+    const problems = await workflowProblems("w.yml", workflow, metadata);
+    expect(problems).toHaveLength(1);
+    expect(problems[0]).toMatch(/steps\.d\.outputs\.publishedPackages/);
+    expect(problems[0]).toMatch(/published-packages/);
+  });
+
+  it("accepts an output whose name has a hyphen", async () => {
+    const workflow = job([
+      { id: "d", uses: "acme/deploy@v2", with: { target: "t" } },
+      { run: "echo ${{ steps.d.outputs.published-packages }}" },
+    ]);
+    expect(await workflowProblems("w.yml", workflow, metadata)).toEqual([]);
+  });
+
+  it("checks the outputs a job needs from another job of the same workflow", async () => {
+    const workflow = {
+      jobs: {
+        build: { steps: [{ run: "true" }], outputs: { version: "1" } },
+        publish: {
+          needs: "build",
+          steps: [
+            { run: "echo ${{ needs.build.outputs.version }} ${{ needs.build.outputs.nope }}" },
+          ],
+        },
+      },
+    };
+    const problems = await workflowProblems("w.yml", workflow, metadata);
+    expect(problems).toHaveLength(1);
+    expect(problems[0]).toMatch(/needs\.build\.outputs\.nope/);
+  });
+
+  it("leaves local and docker actions alone", async () => {
+    const workflow = job([
+      { uses: "./local", with: { anything: 1 } },
+      { uses: "docker://alpine:3", with: { x: 1 } },
+    ]);
+    expect(await workflowProblems("w.yml", workflow, metadata)).toEqual([]);
+  });
+
+  it("says so when it cannot read an action's metadata, instead of passing in silence", async () => {
+    const workflow = job([{ uses: "acme/ghost@v1", with: {} }]);
+    const [problem] = await workflowProblems("w.yml", workflow, metadata);
+    expect(problem).toMatch(/acme\/ghost@v1/);
+    expect(problem).toMatch(/could not read/);
+  });
+
+  it("checks a job that calls a step without inputs against an action with none", async () => {
+    const workflow = job([{ uses: "acme/plain@v1", with: { x: 1 } }]);
+    expect(await workflowProblems("w.yml", workflow, metadata)).toHaveLength(1);
+  });
+});
+````
+
+- [ ] **Step 2: Rodar e ver falhar (RED).**
+
+```bash
+timeout 90 npx vitest run --project scripts scripts/workflows
+```
+
+Esperado: 1 arquivo falha com `Cannot find module './checks.mjs'` (e `no tests`).
+
+- [ ] **Step 3: Implementar as funções puras.**
+
+````js
+// scripts/workflows/checks.mjs
+// Checks the workflows against the actions they use. A workflow is not run until it has to be, and
+// GitHub only tells you an input is wrong when the step runs: a release workflow would find out on the
+// day of the release. So every third-party action is looked up (its action.yml) and each `with` input,
+// each required input and each `steps.<id>.outputs.<name>` that a workflow reads is compared with what
+// the action declares. Pure, so it is unit-tested (checks.test.mjs) with a fake `metadata`.
+
+/** `owner/repo[/path]@ref` as its parts, or null for a local (`./x`) or Docker action, or no ref. */
+export function actionReference(uses) {
+  if (uses.startsWith("./") || uses.startsWith("docker://")) return null;
+  const at = uses.lastIndexOf("@");
+  if (at === -1) return null;
+  const [owner, repo, ...path] = uses.slice(0, at).split("/");
+  if (!owner || !repo) return null;
+  return { repo: `${owner}/${repo}`, path: path.join("/"), ref: uses.slice(at + 1) };
+}
+
+const names = (object) => Object.keys(object ?? {}).join(", ") || "none";
+
+/**
+ * The problems of one workflow (a list of sentences, empty when it is fine). `metadata(uses)` gives the
+ * parsed action.yml of an action (`{ inputs, outputs }`), or null when it cannot be read.
+ */
+export async function workflowProblems(file, workflow, metadata) {
+  const problems = [];
+  const jobs = workflow.jobs ?? {};
+
+  // What each step with an id, and each job, declares as outputs.
+  const stepOutputs = {}; // `${job}.${id}` -> the outputs of the action, or null when unknown
+  const jobOutputs = {}; // job -> the outputs it declares
+  for (const [jobId, job] of Object.entries(jobs)) {
+    jobOutputs[jobId] = Object.keys(job.outputs ?? {});
+    for (const step of job.steps ?? []) {
+      if (!step.uses) continue;
+      if (!actionReference(step.uses)) continue;
+      const meta = await metadata(step.uses);
+      if (!meta) {
+        problems.push(
+          `${file}: could not read the metadata of ${step.uses}, so it was not checked`,
+        );
+        continue;
+      }
+      const where = `${file}, job "${jobId}", ${step.uses}`;
+      const inputs = meta.inputs ?? {};
+      for (const key of Object.keys(step.with ?? {})) {
+        if (!(key in inputs)) {
+          problems.push(
+            `${where}: "${key}" is not an input of this action (it declares: ${names(inputs)})`,
+          );
+        }
+      }
+      for (const [key, spec] of Object.entries(inputs)) {
+        if (spec?.required && spec.default === undefined && !(key in (step.with ?? {}))) {
+          problems.push(`${where}: the action requires the input "${key}"`);
+        }
+      }
+      if (step.id) stepOutputs[`${jobId}.${step.id}`] = meta.outputs ?? {};
+    }
+  }
+
+  // What the workflow reads: `steps.<id>.outputs.<name>` (inside its own job) and
+  // `needs.<job>.outputs.<name>`.
+  for (const [jobId, job] of Object.entries(jobs)) {
+    const text = JSON.stringify(job);
+    for (const [, id, name] of text.matchAll(/steps\.([\w-]+)\.outputs\.([\w-]+)/g)) {
+      const outputs = stepOutputs[`${jobId}.${id}`];
+      if (outputs && !(name in outputs)) {
+        problems.push(
+          `${file}, job "${jobId}": steps.${id}.outputs.${name} does not exist (the action declares: ${names(outputs)})`,
+        );
+      }
+    }
+    for (const [, other, name] of text.matchAll(/needs\.([\w-]+)\.outputs\.([\w-]+)/g)) {
+      if (jobOutputs[other] && !jobOutputs[other].includes(name)) {
+        problems.push(
+          `${file}, job "${jobId}": needs.${other}.outputs.${name} is not declared by job "${other}" (it declares: ${jobOutputs[other].join(", ") || "none"})`,
+        );
+      }
+    }
+  }
+  return problems;
+}
+````
+
+- [ ] **Step 4: Rodar (GREEN), e o `yaml` vira dependência de desenvolvimento** (ele já vinha, por tabela, do Changesets: depender de uma dependência que ninguém declarou é frágil). O lockfile é escrito de novo pelo npm 10 e conferido nas três versões (fora do repositório, sem `node_modules`).
+
+```bash
+npx prettier --write scripts/workflows
+timeout 90 npx vitest run --project scripts scripts/workflows
+npx eslint scripts/workflows
+npm install -D yaml@2.9.1
+npx -y npm@10 install --package-lock-only --ignore-scripts --no-audit --no-fund
+d=$(mktemp -d) && cp package.json package-lock.json "$d" && (cd "$d" && for v in 10 11 12; do echo -n "npm@$v: "; npx -y npm@$v ci --dry-run --ignore-scripts --no-audit --no-fund 2>&1 | grep -E "EUSAGE|Missing|added"; done); rm -rf "$d"
+```
+
+Esperado: 1 arquivo, 16 testes passando; `added N packages` nas três versões do npm.
+
+- [ ] **Step 5: O script que lê os workflows do repositório.** Busca o `action.yml` (ou `.yaml`) de cada action em `raw.githubusercontent.com` (no `ref` que o workflow usa) e roda as funções.
+
+````js
+// scripts/check-workflows.mjs
+// Checks every workflow in .github/workflows against the third-party actions it uses (see
+// scripts/workflows/checks.mjs): an input the action does not declare, a required input that is missing,
+// and a step or job output that does not exist all fail here, and not on the day the workflow first runs.
+// It reads each action's action.yml from GitHub, so it needs the network.
+//
+//   node scripts/check-workflows.mjs
+import { readFileSync, readdirSync } from "node:fs";
+import { join } from "node:path";
+import { parse } from "yaml";
+import { actionReference, workflowProblems } from "./workflows/checks.mjs";
+
+const DIRECTORY = ".github/workflows";
+const cache = new Map();
+
+/** The parsed action.yml (or action.yaml) of `uses`, or null when it cannot be read. */
+async function metadata(uses) {
+  if (!cache.has(uses)) cache.set(uses, read(uses));
+  return cache.get(uses);
+}
+
+async function read(uses) {
+  const { repo, path, ref } = actionReference(uses);
+  for (const file of ["action.yml", "action.yaml"]) {
+    const url = `https://raw.githubusercontent.com/${repo}/${ref}/${path ? `${path}/` : ""}${file}`;
+    try {
+      const response = await fetch(url);
+      if (response.ok) return parse(await response.text());
+    } catch {
+      // A network error is reported below, as an action that could not be read.
+    }
+  }
+  return null;
+}
+
+const problems = [];
+let checked = 0;
+for (const name of readdirSync(DIRECTORY)
+  .filter((file) => /\.ya?ml$/.test(file))
+  .sort()) {
+  const workflow = parse(readFileSync(join(DIRECTORY, name), "utf8"));
+  problems.push(...(await workflowProblems(`${DIRECTORY}/${name}`, workflow, metadata)));
+  checked++;
+}
+
+if (problems.length > 0) {
+  console.error(`${problems.length} workflow problem(s):\n- ${problems.join("\n- ")}`);
+  process.exit(1);
+}
+console.log(
+  `Workflows OK: ${checked} files, ${cache.size} actions checked against their action.yml.`,
+);
+````
+
+- [ ] **Step 6: Rodar contra o workflow que está no `main` (RED de verdade).**
+
+```bash
+npx prettier --write scripts && npx eslint scripts
+node scripts/check-workflows.mjs; echo "exit=$?"
+```
+
+Esperado: `exit=1` e **6 problemas**, todos em `release.yml`: `"version"`, `"publish"`, `"title"`, `"commit"` e `"createGithubReleases"` "is not an input of this action" (com a lista do que a `changesets/action@v2` declara: `github-token, publish-script, version-script, commit-message, pr-title, pr-draft, ...`) e `steps.changesets.outputs.publishedPackages does not exist (the action declares: published, published-packages, has-changesets, pr-number)`. **É exatamente o que falhou no GitHub**, e as outras 9 ações dos 3 workflows passam.
+
+- [ ] **Step 7: Corrigir o workflow.** Só mudam as entradas da `changesets/action` e a saída que o job `release` publica (o resto é o arquivo da Task 6).
+
+````yaml
+// .github/workflows/release.yml.fixed
+name: Release
+
+# Opens (or updates) the "Version Packages" pull request while there are changesets, and publishes to
+# npm when that pull request is merged. It publishes with npm trusted publishing: there is no npm token
+# anywhere, GitHub proves to npm which repository and workflow this is (OIDC), and the package gets a
+# provenance statement.
+#
+# It does nothing until the repository variable RELEASE_ENABLED is "true". Set it after the trusted
+# publisher is configured on npm, which can only be done once the package exists, so the first version is
+# published by hand (see "Releasing" in CONTRIBUTING.md). The filename of this workflow is part of that
+# configuration: renaming it breaks publishing until npm is told.
+
+on:
+  push:
+    branches: [main]
+
+permissions: {}
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Version or publish
+    if: ${{ vars.RELEASE_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # the version branch, the git tags and the GitHub releases
+      pull-requests: write # the "Version Packages" pull request
+      id-token: write # npm trusted publishing (OIDC) and provenance
+    outputs:
+      published: ${{ steps.changesets.outputs.published }}
+      publishedPackages: ${{ steps.changesets.outputs.published-packages }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          # Never cache in a release build: a poisoned cache would end up in the package.
+          package-manager-cache: false
+      - run: npm ci
+      # Trusted publishing needs npm 11.5.1 or newer (Node 24 ships a newer one).
+      - name: Check the npm version
+        run: |
+          v=$(npm --version)
+          echo "npm $v"
+          [ "$(printf '%s\n11.5.1\n' "$v" | sort -V | head -1)" = "11.5.1" ]
+      - run: npm test
+      - id: changesets
+        uses: changesets/action@v2
+        with:
+          version-script: npm run changeset:version
+          publish-script: npm run release
+          pr-title: "chore: version packages"
+          commit-message: "chore: version packages"
+          create-github-releases: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # What npm serves is what gets tested: the version that was just published is installed from the
+  # registry and run through the same smoke test as the tarball, and its provenance is checked.
+  verify:
+    name: Verify the published package
+    needs: release
+    if: ${{ needs.release.outputs.published == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - run: npm ci
+      - name: Smoke test the version on the registry
+        env:
+          PUBLISHED: ${{ needs.release.outputs.publishedPackages }}
+        run: |
+          version=$(node -e 'console.log(JSON.parse(process.env.PUBLISHED)[0].version)')
+          echo "Verifying @gabreusi/hyrax@$version"
+          node scripts/smoke.mjs "@gabreusi/hyrax@$version"
+          npm view "@gabreusi/hyrax@$version" dist.attestations.provenance.predicateType --json
+````
+
+Salve o conteúdo acima como `.github/workflows/release.yml` (o sufixo `.fixed` existe só para este plano não ter dois blocos com o mesmo caminho).
+
+- [ ] **Step 8: O `check:workflows` entra no `check` e no job `quality` do CI.**
+
+```bash
+npm pkg set scripts.check:workflows="node scripts/check-workflows.mjs"
+npm pkg set scripts.check="npm run lint && npm run format:check && npm run typecheck && npm run check:boundary && npm run check:workflows && npm run test:coverage && npm run build && npm run check:package && npm run size && npm run smoke && npm run smoke:bundlers && npm run docs:examples && npm run docs:build"
+```
+
+E, em `.github/workflows/ci.yml`, no job `quality`, logo depois do passo `npm run check:boundary`:
+
+```yaml
+      # Every third-party action is used with inputs and outputs it declares (read from its action.yml).
+      - run: npm run check:workflows
+```
+
+Na tabela de comandos do `CONTRIBUTING.md`, depois da linha do `npm run check:boundary`, acrescente:
+
+```
+| `npm run check:workflows` | Checks every third-party action in the workflows against its `action.yml`: the inputs and outputs it declares |
+```
+
+- [ ] **Step 9: Rodar (GREEN) e o `check` completo.**
+
+```bash
+npx prettier --write .github package.json CONTRIBUTING.md
+node scripts/check-workflows.mjs; echo "exit=$?"
+rm -rf dist coverage site/api site/.vitepress/dist
+npm run check; echo "exit=$?"
+```
+
+Esperado: `Workflows OK: 3 files, 10 actions checked against their action.yml.` com `exit=0`; e o `check` com `exit=0`, **55 arquivos e 602 testes**.
+
+- [ ] **Step 10: Provar que os testes valem (duas mutações).** Em `scripts/workflows/checks.mjs`, troque `if (!(key in inputs)) {` por `if (false) {` (esperado: **3 testes falham**) e restaure; troque `if (outputs && !(name in outputs)) {` por `if (false) {` (esperado: **1 teste falha**) e restaure (`git diff scripts/workflows/checks.mjs` vazio).
+
+- [ ] **Step 11: Commit.**
+
+```bash
+git add scripts/workflows scripts/check-workflows.mjs .github package.json package-lock.json CONTRIBUTING.md
+git commit -m "ci: fix the inputs of changesets/action and check every workflow against its actions" -m "Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
+```
+
+**O que isto ainda não prova:** que a `changesets/action` funciona (ela só roda de verdade quando há o que versionar ou publicar), e que a publicação por OIDC funciona (o pacote ainda não existe). A checagem prova que os **nomes** estão certos, e não que o comportamento está.
+
+---
+
 ## 6b. Depois do merge: publicar a `1.0.0-rc.0` (roteiro do dono)
 
 Tudo aqui pede a **sua** conta do npm e as **suas** configurações do repositório, então é você quem roda. Eu volto no passo 7.
 
 1. **Confirme a conta e o escopo do npm.** Entre em https://www.npmjs.com com o usuário `gabreusi` (crie, se não existir) e ligue o 2FA no nível da conta ("Authorization and writes"). No terminal: `npm login` e `npm whoami` (deve dizer `gabreusi`). O escopo `@gabreusi` é o do usuário e existe sozinho. O registro hoje responde 404 para `@gabreusi/hyrax`, o que é o esperado.
+   **Se o npm pede um código enviado por email e o seu email não recebe** (a caixa cheia, por exemplo), o `npm login` não termina. O que a documentação do npm oferece, da mais simples para a mais lenta:
+   - **Liberar espaço na caixa** (apagar mensagens grandes ou com anexos) até ela voltar a receber, e pedir o código de novo. Muitos provedores voltam a receber assim que a caixa fica abaixo do limite.
+   - **Recuperar a conta:** no formulário "Login Verification", o link **"Try recovering your account"** e depois **"Start Account Recovery"**.
+   - **Trocar o email da conta**, o que só o suporte do npm faz quando você não acessa o email antigo: um pedido em support@npmjs.com, explicando o motivo.
+   - **Depois de entrar**, ligue o **2FA com uma chave de segurança** (WebAuthn: Touch ID, Windows Hello ou uma YubiKey; é o que a documentação do npm oferece hoje) e **confira o email da conta**. Com o 2FA ligado, o código por email deixa de ser o caminho do login e do `npm publish`, e o `npm trust` (passo 6) exige o 2FA no nível da conta de qualquer jeito.
+
+   Nada neste plano fora da publicação e da configuração do npm depende disso: o site, o CI e o repositório seguem normais.
 2. **Um checkout limpo da `main`, no commit da versão.**
 
    ```bash
@@ -1474,7 +1929,7 @@ Tudo aqui pede a **sua** conta do npm e as **suas** configurações do repositó
    ```
 
    O nome do arquivo (`release.yml`), o repositório (`gabreusi/hyrax`) e o ambiente (nenhum) precisam ser exatamente estes.
-7. **Ligue o workflow.** Em https://github.com/gabreusi/hyrax/settings/actions marque **"Allow GitHub Actions to create and approve pull requests"**, e crie a variável:
+7. **Ligue o workflow.** (A variável `RELEASE_ENABLED` foi criada com `true` **antes** de a `rc.0` existir, e por isso o `release.yml` roda a cada push no `main` e falha: primeiro pela entrada errada da action, corrigida na Task 9, e depois, sem a Task 9 nem o pacote, por não haver o que publicar por OIDC. **Se ainda não fez os passos 3 a 6, deixe a variável em `false`**: `gh variable set RELEASE_ENABLED --body false --repo gabreusi/hyrax`, e só volte para `true` aqui.) Em https://github.com/gabreusi/hyrax/settings/actions marque **"Allow GitHub Actions to create and approve pull requests"**, e crie (ou atualize) a variável:
 
    ```bash
    gh variable set RELEASE_ENABLED --body true --repo gabreusi/hyrax
