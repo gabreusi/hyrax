@@ -1,6 +1,6 @@
 {
   "name": "@gabreusi/hyrax",
-  "version": "0.0.0",
+  "version": "1.0.0-rc.0",
   "description": "Isomorphic TypeScript toolkit: seeded random, number and string helpers, plus DOM and React utilities.",
   "keywords": [
     "typescript",
