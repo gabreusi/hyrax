@@ -20,10 +20,11 @@ The `/dom` and `/react` tests that need a real browser (layout, Shadow DOM, real
 | `npm run typecheck`      | Type-checks each entrypoint and the tests                                                                |
 | `npm run check:boundary` | Fails if `src/core` starts compiling against DOM globals                                                 |
 | `npm run build`          | Builds `dist/` (ESM, CJS and type declarations)                                                          |
-| `npm run check:package`  | `publint` and Are the Types Wrong on the built package                                                   |
+| `npm run check:package`  | `publint`, Are the Types Wrong, and what the tarball holds (no source, nothing missing, under 100 kB)    |
 | `npm run size`           | Enforces the bundle-size budget (whole entrypoint and one function)                                      |
 | `npm run bench`          | Prints how fast the `Random` methods are next to `Math.random` and `crypto` (a report, not a gate)       |
 | `npm run smoke`          | Installs the packed tarball, imports every entrypoint and type-checks a consumer                         |
+| `npm run smoke:bundlers` | Bundles the packed tarball with esbuild, Vite and webpack, and checks tree-shaking and size              |
 | `npm run docs:examples`  | Type-checks every code example (TSDoc, guides, README) against the built package, and runs the core ones |
 | `npm run docs:build`     | Generates the API pages with TypeDoc, then builds the VitePress site (a dead link fails it)              |
 | `npm run docs:dev`       | The same generation, then the site with live reload                                                      |
@@ -115,3 +116,35 @@ guide, and the API reference, which is **generated** from the TSDoc by TypeDoc i
 - **Publishing.** The `docs` job of the CI builds the site on every pull request. `.github/workflows/docs.yml` deploys it
   to GitHub Pages from `main`, but only after Pages is set to deploy from GitHub Actions (Settings, Pages, Source) and the
   repository variable `DOCS_DEPLOY` is `true`.
+
+## Releasing
+
+Versions are decided by [Changesets](https://github.com/changesets/changesets), and published by the `release` workflow
+with npm **trusted publishing**: there is no npm token in the repository, GitHub proves to npm which repository and
+workflow is publishing (OIDC), and the package gets a provenance statement.
+
+- **A pull request that changes what users see adds a changeset**: `npm run changeset` (pick `patch`, `minor` or
+  `major`, and write the line for the changelog). One that changes nothing they see (tests, tooling, docs) adds none.
+- **On `main`, the workflow opens a "Version Packages" pull request** with the new version and the changelog. **Merging
+  it publishes**, creates the tag `vX.Y.Z` and the GitHub release.
+- **The `rc` pre-release mode is on** until 1.0.0: versions are `1.0.0-rc.N` and are published under the dist-tag `rc`
+  (`npm install @gabreusi/hyrax@rc`). To leave it, run `npx changeset pre exit` in a pull request, review the changesets
+  in `.changeset/pre/` (they become the 1.0.0 changelog), and merge the "Version Packages" pull request that follows.
+- **What the tarball holds is checked** (`npm run check:package`), and `npm publish` from a machine refuses a package that
+  is private or still at the `0.0.0` placeholder (`prepublishOnly`).
+- **The workflow does nothing until the repository variable `RELEASE_ENABLED` is `true`.** Its filename (`release.yml`) is part
+  of the trusted publisher configuration on npm: renaming it breaks publishing until npm is told.
+- **One-time setup.** npm can only configure a trusted publisher for a package that already exists, so the first version is
+  published by hand, once, from a clean checkout of `main` at the version commit, with an npm account that has two-factor
+  authentication on and owns the `@gabreusi` scope:
+
+  ```sh
+  npm login
+  npm publish --tag rc           # prepublishOnly builds and checks first; this first version has no provenance
+  git tag v1.0.0-rc.0 && git push origin v1.0.0-rc.0
+  npm trust github @gabreusi/hyrax --file release.yml --repo gabreusi/hyrax --allow-publish
+  ```
+
+  `npm trust` needs npm 11.15 or newer. Then, in the repository settings, allow GitHub Actions to create and approve pull
+  requests (Settings, Actions, General), and set the variable `RELEASE_ENABLED` to `true`. From then on every release is made
+  by the workflow, and no npm token needs to exist.
