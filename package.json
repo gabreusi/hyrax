@@ -84,7 +84,10 @@
     "docs:dev": "npm run docs:api && vitepress dev site",
     "docs:preview": "vitepress preview site",
     "prepublishOnly": "npm run build && publint && node scripts/check-pack.mjs --publish",
-    "smoke:bundlers": "node scripts/smoke-bundlers.mjs"
+    "smoke:bundlers": "node scripts/smoke-bundlers.mjs",
+    "changeset": "changeset",
+    "changeset:version": "changeset version && prettier --write CHANGELOG.md package.json",
+    "release": "changeset publish"
   },
   "peerDependencies": {
     "react": ">=18",
@@ -101,6 +104,8 @@
   "author": "Gabriel Pantano Signorini",
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
+    "@changesets/changelog-github": "^1.0.1",
+    "@changesets/cli": "^3.0.3",
     "@eslint/js": "^10.0.1",
     "@size-limit/preset-small-lib": "^14.0.0",
     "@testing-library/dom": "^10.4.2",
