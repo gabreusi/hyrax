@@ -100,6 +100,22 @@ jobs:
           path: pack/*.tgz
           if-no-files-found: error
 
+  docs:
+    name: Docs (examples and site)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      # The examples are checked against the built package.
+      - run: npm run build
+      - run: npm run docs:examples
+      # Generates the API pages with TypeDoc, then builds the site. A dead link fails the build.
+      - run: npm run docs:build
+
   smoke:
     name: Smoke test (Node ${{ matrix.node }})
     needs: build

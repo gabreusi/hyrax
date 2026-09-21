@@ -75,7 +75,7 @@
     "check:boundary": "node scripts/check-core-boundary.mjs",
     "check:package": "publint && attw --pack . --profile node16",
     "smoke": "node scripts/smoke.mjs",
-    "check": "npm run lint && npm run format:check && npm run typecheck && npm run check:boundary && npm run test:coverage && npm run build && npm run check:package && npm run size && npm run smoke",
+    "check": "npm run lint && npm run format:check && npm run typecheck && npm run check:boundary && npm run test:coverage && npm run build && npm run check:package && npm run size && npm run smoke && npm run docs:examples && npm run docs:build",
     "size": "size-limit",
     "bench": "npm run build && node scripts/bench.mjs",
     "test:browser": "vitest run --project browser",
