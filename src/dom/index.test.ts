@@ -9,4 +9,9 @@ describe("@gabreusi/hyrax/dom", () => {
   it("has named exports only", () => {
     expect("default" in dom).toBe(false);
   });
+
+  it("exposes exactly the intended public API", () => {
+    // Adding or removing an export is an API decision: update this list on purpose.
+    expect(Object.keys(dom).sort()).toEqual(["getCSSVar", "listen", "onClickOutside", "toPixels"]);
+  });
 });
