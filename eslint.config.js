@@ -6,7 +6,7 @@ import prettier from "eslint-config-prettier";
 import globals from "globals";
 
 export default tseslint.config(
-  { ignores: ["dist/**", "coverage/**", "docs/**", "test-fixtures/**"] },
+  { ignores: ["dist/**", "coverage/**", ".vitest/**", "docs/**", "test-fixtures/**"] },
   js.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
   {

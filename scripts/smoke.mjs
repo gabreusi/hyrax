@@ -25,11 +25,18 @@ const TRANSCENDENTAL =
   '(() => { const r = new Random({ seed: "hyrax", luck: 1.5 }); return [r.float(), r.int(1, 20), r.boolean(), r.normal(), r.exponential(2)].join(" "); })()';
 const TRANSCENDENTAL_EXPECTED = "0.5756361196616097 17 false 0.9888625997383569 0.5883254698180862";
 
+// The /dom entrypoint must be importable and callable where there is no document (Node, Deno, Bun,
+// a server render). This runs against the built package in each of them.
+const DOM_SSR =
+  '(dom) => [dom.getCSSVar("--x", "fallback"), Number.isNaN(dom.toPixels("2em")), typeof dom.listen(null, "click", () => {}), typeof dom.onClickOutside(null, () => {})].join(" ")';
+const DOM_SSR_EXPECTED = "fallback true function function";
+
 // A real TypeScript consumer of the public API. `@ts-expect-error` lines make the
 // compile fail if the types ever become looser than intended.
 const CONSUMER = `
 import { alias, clamp, fabricate, isNumeric, random, Random, StringBuilder, Suspend, toCamelCase, traceHierarchy } from "${NAME}";
 import type { RandomState, SecureRandom } from "${NAME}";
+import { getCSSVar, listen, onClickOutside, toPixels } from "${NAME}/dom";
 import type { Maybe, Numeric } from "${NAME}";
 
 const aliased = alias({ name: "Alice", age: 30 }, { age: ["years"] as const });
@@ -62,6 +69,16 @@ export const total: number = new Random("x").roll("2d6+3");
 const secure: SecureRandom = Random.secure();
 export const session: string = secure.token();
 
+export const primary: string | null = getCSSVar("--primary");
+export const gap: string = getCSSVar("--gap", "8px");
+export const size: number = toPixels("2em");
+export const stopResize: () => void = listen(window, "resize", (event: UIEvent) => void event);
+export const stopOutside: () => void = onClickOutside(document.body, (event: PointerEvent) => void event);
+
+// @ts-expect-error resize gives a UIEvent, not a KeyboardEvent
+listen(window, "resize", (event: KeyboardEvent) => void event);
+// @ts-expect-error toPixels takes a string or a number
+toPixels(null);
 // @ts-expect-error a secure generator has no state: it cannot be replayed
 secure.state();
 // @ts-expect-error a seeded generator has no token: a reproducible token would be a trap
@@ -126,6 +143,23 @@ try {
     );
   }
 
+  const domScript = `console.log((${DOM_SSR})(dom));`;
+  const domEsm = run(
+    "node",
+    ["--input-type=module", "-e", `import * as dom from "${NAME}/dom"; ${domScript}`],
+    dir,
+  ).trim();
+  const domCjs = run(
+    "node",
+    ["-e", `const dom = require("${NAME}/dom"); ${domScript}`],
+    dir,
+  ).trim();
+  if (domEsm !== DOM_SSR_EXPECTED || domCjs !== DOM_SSR_EXPECTED) {
+    throw new Error(
+      `/dom is not safe without a DOM: ESM "${domEsm}", CJS "${domCjs}", expected "${DOM_SSR_EXPECTED}"`,
+    );
+  }
+
   // Type-check a consumer against the installed package. Needs the repo's own
   // TypeScript, so it is skipped where dependencies are not installed.
   const tsc = resolve(process.cwd(), "node_modules/typescript/lib/tsc.js");
@@ -159,6 +193,8 @@ try {
   const code = `${entrypoints.map((id, i) => `import * as m${i} from "${id}";`).join("")}
     if (m0.clamp(15, 10) !== 10) throw new Error("clamp broken");
     const { Random } = m0;
+    const domResult = (${DOM_SSR})(m1);
+    if (domResult !== "${DOM_SSR_EXPECTED}") throw new Error("/dom is not safe without a DOM: " + domResult);
     const exact = ${EXACT};
     if (exact !== "${EXACT_EXPECTED}") throw new Error("EXACT seeded output differs: " + exact);
     const transcendental = ${TRANSCENDENTAL};

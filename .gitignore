@@ -2,5 +2,6 @@ node_modules
 dist
 coverage
 .idea
+.vitest
 *.tsbuildinfo
 .DS_Store
