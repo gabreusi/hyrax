@@ -74,7 +74,7 @@
     "check:boundary": "node scripts/check-core-boundary.mjs",
     "check:package": "publint && attw --pack . --profile node16 && node scripts/check-pack.mjs",
     "smoke": "node scripts/smoke.mjs",
-    "check": "npm run lint && npm run format:check && npm run typecheck && npm run check:boundary && npm run test:coverage && npm run build && npm run check:package && npm run size && npm run smoke && npm run smoke:bundlers && npm run docs:examples && npm run docs:build",
+    "check": "npm run lint && npm run format:check && npm run typecheck && npm run check:boundary && npm run check:workflows && npm run test:coverage && npm run build && npm run check:package && npm run size && npm run smoke && npm run smoke:bundlers && npm run docs:examples && npm run docs:build",
     "size": "size-limit",
     "bench": "npm run build && node scripts/bench.mjs",
     "test:browser": "vitest run --project browser",
@@ -87,7 +87,8 @@
     "smoke:bundlers": "node scripts/smoke-bundlers.mjs",
     "changeset": "changeset",
     "changeset:version": "changeset version && prettier --write CHANGELOG.md package.json",
-    "release": "changeset publish"
+    "release": "changeset publish",
+    "check:workflows": "node scripts/check-workflows.mjs"
   },
   "peerDependencies": {
     "react": ">=18",
@@ -135,7 +136,8 @@
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.70.0",
     "vitepress": "^1.6.4",
-    "vitest": "^5.0.1"
+    "vitest": "^5.0.1",
+    "yaml": "^2.9.1"
   },
   "size-limit": [
     {

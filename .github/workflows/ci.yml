@@ -27,6 +27,8 @@ jobs:
       - run: npm run format:check
       - run: npm run typecheck
       - run: npm run check:boundary
+      # Every third-party action is used with inputs and outputs it declares (read from its action.yml).
+      - run: npm run check:workflows
 
   test:
     name: Test (Node ${{ matrix.node }})

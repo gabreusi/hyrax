@@ -11,24 +11,25 @@ The `/dom` and `/react` tests that need a real browser (layout, Shadow DOM, real
 
 ## Commands
 
-| Command                  | What it does                                                                                             |
-| ------------------------ | -------------------------------------------------------------------------------------------------------- |
-| `npm test`               | Runs the tests (`core` and `scripts` in Node, `dom` and `react` in happy-dom), without the browser       |
-| `npm run test:browser`   | Runs only the tests that need a real browser (Chromium)                                                  |
-| `npm run test:coverage`  | Everything, browser included, with coverage. `src/core`, `src/dom` and `src/react` must stay at 95%      |
-| `npm run lint`           | ESLint. Every exported symbol needs TSDoc with an `@example`                                             |
-| `npm run typecheck`      | Type-checks each entrypoint and the tests                                                                |
-| `npm run check:boundary` | Fails if `src/core` starts compiling against DOM globals                                                 |
-| `npm run build`          | Builds `dist/` (ESM, CJS and type declarations)                                                          |
-| `npm run check:package`  | `publint`, Are the Types Wrong, and what the tarball holds (no source, nothing missing, under 100 kB)    |
-| `npm run size`           | Enforces the bundle-size budget (whole entrypoint and one function)                                      |
-| `npm run bench`          | Prints how fast the `Random` methods are next to `Math.random` and `crypto` (a report, not a gate)       |
-| `npm run smoke`          | Installs the packed tarball, imports every entrypoint and type-checks a consumer                         |
-| `npm run smoke:bundlers` | Bundles the packed tarball with esbuild, Vite and webpack, and checks tree-shaking and size              |
-| `npm run docs:examples`  | Type-checks every code example (TSDoc, guides, README) against the built package, and runs the core ones |
-| `npm run docs:build`     | Generates the API pages with TypeDoc, then builds the VitePress site (a dead link fails it)              |
-| `npm run docs:dev`       | The same generation, then the site with live reload                                                      |
-| `npm run check`          | Everything above, in CI order                                                                            |
+| Command                   | What it does                                                                                                  |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `npm test`                | Runs the tests (`core` and `scripts` in Node, `dom` and `react` in happy-dom), without the browser            |
+| `npm run test:browser`    | Runs only the tests that need a real browser (Chromium)                                                       |
+| `npm run test:coverage`   | Everything, browser included, with coverage. `src/core`, `src/dom` and `src/react` must stay at 95%           |
+| `npm run lint`            | ESLint. Every exported symbol needs TSDoc with an `@example`                                                  |
+| `npm run typecheck`       | Type-checks each entrypoint and the tests                                                                     |
+| `npm run check:boundary`  | Fails if `src/core` starts compiling against DOM globals                                                      |
+| `npm run check:workflows` | Checks every third-party action in the workflows against its `action.yml`: the inputs and outputs it declares |
+| `npm run build`           | Builds `dist/` (ESM, CJS and type declarations)                                                               |
+| `npm run check:package`   | `publint`, Are the Types Wrong, and what the tarball holds (no source, nothing missing, under 100 kB)         |
+| `npm run size`            | Enforces the bundle-size budget (whole entrypoint and one function)                                           |
+| `npm run bench`           | Prints how fast the `Random` methods are next to `Math.random` and `crypto` (a report, not a gate)            |
+| `npm run smoke`           | Installs the packed tarball, imports every entrypoint and type-checks a consumer                              |
+| `npm run smoke:bundlers`  | Bundles the packed tarball with esbuild, Vite and webpack, and checks tree-shaking and size                   |
+| `npm run docs:examples`   | Type-checks every code example (TSDoc, guides, README) against the built package, and runs the core ones      |
+| `npm run docs:build`      | Generates the API pages with TypeDoc, then builds the VitePress site (a dead link fails it)                   |
+| `npm run docs:dev`        | The same generation, then the site with live reload                                                           |
+| `npm run check`           | Everything above, in CI order                                                                                 |
 
 ## Rules of the repo
 
