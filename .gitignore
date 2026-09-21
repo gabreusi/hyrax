@@ -5,3 +5,7 @@ coverage
 .vitest
 *.tsbuildinfo
 .DS_Store
+.examples
+site/api
+site/.vitepress/dist
+site/.vitepress/cache
