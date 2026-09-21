@@ -14,7 +14,13 @@ import { useLatest } from "./internal/useLatest";
  *
  * @example
  * ```tsx
- * useEventListener(window, "resize", () => setWidth(window.innerWidth));
+ * import { useState } from "react";
+ *
+ * function Width() {
+ *   const [width, setWidth] = useState(0);
+ *   useEventListener(window, "resize", () => setWidth(window.innerWidth));
+ *   return <p>{width}px</p>;
+ * }
  * ```
  *
  * @param target - The window, a ref to it, or `null`/`undefined` (nothing is listened to). On the
@@ -34,7 +40,13 @@ export function useEventListener<K extends keyof WindowEventMap>(
  *
  * @example
  * ```tsx
- * useEventListener(document, "visibilitychange", () => setHidden(document.hidden));
+ * import { useState } from "react";
+ *
+ * function Visibility() {
+ *   const [hidden, setHidden] = useState(false);
+ *   useEventListener(document, "visibilitychange", () => setHidden(document.hidden));
+ *   return <p>{hidden ? "Away" : "Here"}</p>;
+ * }
  * ```
  *
  * @param target - The document, a ref to it, or `null`/`undefined`. On the server pass
@@ -58,8 +70,13 @@ export function useEventListener<K extends keyof DocumentEventMap>(
  *
  * @example
  * ```tsx
- * const button = useRef<HTMLButtonElement>(null);
- * useEventListener(button, "click", (event) => console.log(event.clientX));
+ * import { useRef } from "react";
+ *
+ * function Clicker() {
+ *   const button = useRef<HTMLButtonElement>(null);
+ *   useEventListener(button, "click", (event) => console.log(event.clientX));
+ *   return <button ref={button}>Click</button>;
+ * }
  * ```
  *
  * @param target - The element, a ref to it, or `null`/`undefined`.
@@ -78,7 +95,10 @@ export function useEventListener<K extends keyof HTMLElementEventMap>(
  *
  * @example
  * ```tsx
- * useEventListener(bus, "message", (event) => console.log(event));
+ * function Bus({ bus }: { bus: EventTarget }) {
+ *   useEventListener(bus, "message", (event) => console.log(event));
+ *   return null;
+ * }
  * ```
  *
  * @param target - The target, a ref to it, or `null`/`undefined`.

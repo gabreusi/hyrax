@@ -55,6 +55,8 @@ function isInside(event: Event, elements: readonly Element[]): boolean {
  *
  * @example
  * ```ts
+ * const menu = document.querySelector<HTMLElement>("#menu")!;
+ * const openButton = document.querySelector<HTMLElement>("#open")!;
  * const off = onClickOutside(menu, () => menu.classList.remove("open"), { ignore: openButton });
  * off(); // stop listening
  * ```

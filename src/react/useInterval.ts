@@ -33,8 +33,17 @@ export interface UseIntervalResult {
  *
  * @example
  * ```tsx
- * const { start, stop, isRunning } = useInterval(() => setSeconds((s) => s + 1), 1000);
- * return <button onClick={isRunning ? stop : start}>{isRunning ? "Pause" : "Play"}</button>;
+ * import { useState } from "react";
+ *
+ * function Timer() {
+ *   const [seconds, setSeconds] = useState(0);
+ *   const { start, stop, isRunning } = useInterval(() => setSeconds((s) => s + 1), 1000);
+ *   return (
+ *     <button onClick={isRunning ? stop : start}>
+ *       {isRunning ? "Pause" : "Play"} {seconds}
+ *     </button>
+ *   );
+ * }
  * ```
  *
  * @param handler - Called on every tick.

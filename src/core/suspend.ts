@@ -35,7 +35,7 @@ interface Listener {
  * const suspend = new Suspend({ threshold: 5000 });
  * const off = suspend.on((elapsed) => {
  *   console.log(`Woke up after ${elapsed} ms`);
- *   reconnect();
+ *   // reconnect your socket, refresh what is stale...
  * });
  *
  * off(); // stop listening
@@ -77,7 +77,10 @@ export class Suspend {
    *
    * @example
    * ```ts
+   * const suspend = new Suspend();
    * const off = suspend.on((elapsed) => console.log(elapsed), { once: true });
+   * off();
+   * suspend.dispose();
    * ```
    *
    * @param callback - Called with the elapsed time (ms) when a suspension is detected.
@@ -104,6 +107,8 @@ export class Suspend {
    *
    * @example
    * ```ts
+   * const suspend = new Suspend();
+   * suspend.on(() => {});
    * suspend.dispose();
    * ```
    */

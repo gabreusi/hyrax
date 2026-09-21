@@ -1,3 +1,9 @@
+/**
+ * Hooks and components for React 18 and 19, built on `@gabreusi/hyrax/dom`. They render on the
+ * server without a `document`, and the entrypoint is marked `"use client"`.
+ *
+ * @module @gabreusi/hyrax/react
+ */
 export { hx } from "./hx";
 export type { HxExtraProps, HxProps, HxShortcutKey, HxType } from "./hx";
 export { Portal } from "./Portal";
