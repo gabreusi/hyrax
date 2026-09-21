@@ -284,7 +284,8 @@ A lógica fica em `/dom`, sem framework. O `/react` só a embrulha. Quem usa Vue
 ### `/dom` (só browser)
 
 Sem dependências e **autocontido**: não importa nada de `src/core` (um import faria o build emitir um chunk compartilhado e
-amarraria os dois entrypoints por uma função de uma linha). Nada roda no import: só dentro das funções.
+amarraria os dois entrypoints por uma função de uma linha). Nada roda no import: só dentro das funções. (O `/react`, que é
+construído sobre o `/dom`, importa dele, e o chunk que resulta é dos dois.)
 
 Todas as funções são seguras em SSR: sem `document`, devolvem o fallback (ou uma função que não faz nada) em vez de lançar.
 
@@ -331,23 +332,65 @@ com Playwright: layout, Shadow DOM, cliques reais com `userEvent`, e as regress�
 
 ### `/react` (React >= 18, testado em 18 e 19)
 
-- `useEventListener(target, type, handler, options?)`: o handler fica numa ref, sem array de dependências.
-  Aceita `window`, `document`, elemento ou ref.
-- `useClickOutside(ref | refs, handler, options?)`: embrulha `onClickOutside`.
-- `useInterval(handler, delay, { autoStart, immediate })`: retorna `{ start, stop, isRunning }`. Handler numa
-  ref e reinício correto quando `delay` muda.
-- `useForceUpdate()`: função estável (`setState` funcional). Sem `.id` e `.counter`.
-- `hx`:
-  - Remove o `React.memo` (não protege nada, porque `style` e `children` mudam a cada render).
-  - Passa a usar `forwardRef` e ter `displayName` (`hx.div`).
-  - O `Proxy` ignora chaves `symbol`.
-  - Conflito de atalhos com atributos nativos (`<hx.canvas width>`, `img`, `svg`, `video`, `border` de tabela):
-    os tipos dos atalhos passam a ser `Omit` das props nativas do elemento, e uma pequena tabela de tags
-    garante o mesmo no runtime.
-  - `rendered` e `transient` inalterados.
-- `Portal`: renderiza só depois de montado (hoje lê `document.body` durante o render e quebra em SSR). Ganha a
-  prop `container` (padrão `body`). `open`, `disabled`, `transient` e `id` inalterados.
-- Tipos usam `import type` do React, sem o namespace global `React.`.
+O `/react` embrulha o `/dom`: importa dele, então o build emite um chunk que **só os dois compartilham** (`listen` e
+`onClickOutside`); a raiz continua sem chunk. O entrypoint começa com **`"use client";`** (o build o põe só nele, nunca
+na raiz nem no `/dom`, que continuam usáveis em um Server Component) para que Next.js e outros bundlers de React Server
+Components saibam onde termina o servidor. Tudo renderiza no servidor, sem `document` e sem lançar; os efeitos só rodam
+no cliente.
+
+| API | Função |
+|---|---|
+| `useEventListener(target, type, handler, options?)` | `listen` durante a vida do componente. O `handler` fica numa ref (sem array de dependências, sem reinscrever). Aceita `window`, `document`, elemento, `EventTarget` ou uma ref, e `null`/`undefined` não faz nada. As `options` são desmontadas em `capture`/`once`/`passive`/`signal`: um objeto novo a cada render não reinscreve |
+| `useClickOutside(refs, handler, options?)` | `onClickOutside` durante a vida do componente. `refs` e `ignore` aceitam uma ref, um elemento ou uma lista deles, lidos **a cada toque** (um elemento que aparece depois é achado). Só `event`, `capture` e `requireInsideFirst` reinscrevem |
+| `useInterval(handler, delay, { autoStart, immediate })` | Devolve `{ start, stop, isRunning }`. O `handler` fica numa ref; trocar o `delay` com o intervalo rodando reinicia o temporizador; `start` e `stop` são estáveis e valem quando o React confirma a atualização, não na mesma linha |
+| `useForceUpdate()` | Função estável (`setState` funcional). Sem `.id` e `.counter` |
+| `hx` | Ver abaixo |
+| `Portal` | Ver abaixo |
+
+**`useEventListener`.** Uma ref é lida quando o efeito roda, depois do primeiro render: um elemento renderizado
+condicionalmente (que aparece depois) escapa de uma ref. Para esse caso, guarde o elemento em estado com uma ref de função
+(`<div ref={setNode}>`) e passe o estado. No servidor `window` não existe e nomeá-lo lança `ReferenceError`: passe
+`globalThis.window` (ou `globalThis.document`), que ali é `undefined` e o hook ignora. Uma ref é distinguida de um alvo
+de eventos por ter `addEventListener`, e não por ter `current`: uma página pode definir uma global `current`, e o `window`
+pareceria uma ref.
+
+**`useClickOutside`.** "Dentro" é decidido pelo DOM, não pela árvore do React: o conteúdo de um `Portal` está em outro
+lugar da página, então liste-o em `refs`, ou um toque nele conta como fora.
+
+**`useInterval`.** `autoStart` é `false` por padrão, como o `initial` do legado. O estado `isRunning` é um estado de
+verdade (o modo `stateless`, que devolvia uma ref, sai) e o temporizador é um efeito dele e do `delay`, então o StrictMode
+não duplica nada. `immediate` chama o `handler` no momento em que o intervalo **começa**, e não de novo quando o `delay`
+muda (isso é um reinício do temporizador, não um começo). Não há `delay: null`: para pausar, use `stop()`. No StrictMode, em desenvolvimento, o React roda todo efeito duas vezes ao montar: `immediate` junto com `autoStart` chama o `handler` duas vezes
+nessa hora (`start()` chama uma).
+
+**`hx`.**
+- Remove o `React.memo` (não protege nada, porque `style` e `children` mudam a cada render).
+- Passa a usar `forwardRef` e ter `displayName` (`hx.div`, `hx(Card)`).
+- O `Proxy` ignora chaves `symbol` (é assim que a linguagem e as ferramentas olham para um objeto, e nenhuma é uma tag).
+- Conflito de atalhos com atributos nativos: **uma tabela** de tags (`canvas`, `img`, `video`, `svg`, `input`, `iframe`,
+  `embed`, `object`, `source` e os elementos SVG que têm `width`/`height` para `width` e `height`; `table` para `border`)
+  é lida pelos tipos e pelo runtime, então não podem discordar. Onde o atributo é nativo, a prop **continua atributo**
+  (`<hx.canvas width={300}>` dimensiona o canvas; um `width` em CSS não dimensiona) e o tipo do atalho é omitido. A
+  consulta usa `Object.hasOwn`: uma tag chamada `toString` não pode achar a função que todo objeto herda.
+- Um atalho vence a mesma chave em `style`, e sem atalho o `style` passa como veio (e sem `style`, nenhum é criado).
+- `children` vai nas props, e não como terceiro argumento do `createElement`.
+- `hx(Component)` dá a qualquer componente só o `rendered` e o `transient`, **sem atalhos**. O legado tipava assim, mas o
+  runtime consumia os nomes dos atalhos mesmo assim, então um componente que declarasse `width` nunca o recebia.
+- `rendered` e `transient` inalterados.
+
+**`Portal`.** Renderiza só depois de montado (o legado lia `document.body` durante o render e quebrava em SSR). Sem
+`document`, e durante a hidratação, não renderiza nada; a árvore do cliente o renderiza logo depois, sem divergência de
+hidratação. Ganha a prop `container` (padrão `document.body`; `null` significa "ainda não pronto" e não renderiza nada:
+guarde o elemento em estado com uma ref de função). `open`, `disabled`, `transient` e `id` inalterados. Com `disabled`
+os filhos saem no lugar, também no servidor.
+
+**Tipos.** `import type` do React, sem o namespace global `React.`. `RefObject` significa coisas diferentes no React 18 e
+no 19, então a API pública usa `RefLike<T>` (`{ readonly current: T | null }`) e `MaybeRef<T>`, que aceitam as duas.
+
+**Testes.** Os mesmos três tipos do `/dom`: `nome.test.tsx` (`happy-dom` e Testing Library), `nome.ssr.test.tsx` (Node
+puro, `renderToString`) e `nome.browser.test.tsx` (Chromium: cliques reais e a remoção de um listener de captura, que o
+`happy-dom` faz mesmo quando esquece a flag). Todo hook é testado também em StrictMode. O CI roda o projeto `react`, o
+type-check e o smoke test contra o React 18 e seus tipos.
 
 ## 6. Qualidade, documentação, CI e release
 
@@ -412,8 +455,9 @@ precisam de `moduleResolution` `node16`, `nodenext` ou `bundler` para resolver `
 | `getPropertySize` | `toPixels` em `/dom` |
 | `useHTMLEventListener(ref, type, fn, deps)` | `useEventListener(ref, type, fn)` |
 | `useUpdate` | `useForceUpdate` |
-| `useInterval(..., { initial, stateless })` | `useInterval(..., { autoStart })` |
+| `useInterval(..., { initial, stateless })` | `useInterval(..., { autoStart })` (o `isRunning` é sempre estado) |
 | `BlurListener`, `ChildrenRefs`, `useChildrenRefs` | `useClickOutside` / `onClickOutside` |
+| `hx(Component)` com props de atalho (`width`...) | `hx(Component)` só dá `rendered` e `transient`; use `style`, ou `hx.<tag>` |
 | `length`, `useAudioRecorder`, `getBoundingClientRect`, `getCSSProperties` | Removidos |
 
 ## 8. Fases de implementação
