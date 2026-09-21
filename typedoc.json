@@ -5,8 +5,25 @@
   "out": "site/api",
   "docsRoot": "./site",
   "plugin": ["typedoc-plugin-markdown", "typedoc-vitepress-theme"],
-  "readme": "none",
+  // The index page of the reference is written by hand and merged in front of the module list.
+  "readme": "site/.vitepress/api-readme.md",
+  "mergeReadme": true,
   "name": "Hyrax API",
+  // Short URLs (/api/hyrax/functions/clamp) and pages shaped for the site's theme: no breadcrumbs or
+  // page header (the theme's title block shows the entrypoint), signatures as code, options as tables.
+  "excludeScopesInPaths": true,
+  "hideBreadcrumbs": true,
+  "hidePageHeader": true,
+  "useCodeBlocks": true,
+  "expandParameters": true,
+  "tableColumnSettings": { "hideSources": true, "hideInherited": true, "leftAlignHeaders": true },
+  "parametersFormat": "table",
+  "interfacePropertiesFormat": "table",
+  "classPropertiesFormat": "table",
+  "typeAliasPropertiesFormat": "table",
+  "typeDeclarationFormat": "table",
+  "indexFormat": "table",
+  "pageTitleTemplates": { "index": "API reference", "module": "{name}", "member": "{name}" },
   "excludeInternal": true,
   // A fixed revision, so the links do not depend on where the docs were built.
   "gitRevision": "main",

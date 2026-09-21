@@ -3,6 +3,8 @@
 Four small functions for the arithmetic that shows up in every UI and game: keeping a value in range, blending two
 values, turning a value into a fraction of a range, and moving a value from one range to another.
 
+<NumberLab />
+
 ## `clamp`
 
 `clamp(value, min, max)` keeps `value` inside the range. With two arguments the second one is the maximum, and the
@@ -76,4 +78,4 @@ clamp(remap(12, [0, 10], [0, 100]), 0, 100); // => 100
 
 ## Reference
 
-The full signatures, with every option and error, are in the API reference: [`clamp`](/api/@gabreusi/hyrax/functions/clamp), [`lerp`](/api/@gabreusi/hyrax/functions/lerp), [`ratio`](/api/@gabreusi/hyrax/functions/ratio), [`remap`](/api/@gabreusi/hyrax/functions/remap).
+The full signatures, with every option and error, are in the API reference: [`clamp`](/api/hyrax/functions/clamp), [`lerp`](/api/hyrax/functions/lerp), [`ratio`](/api/hyrax/functions/ratio), [`remap`](/api/hyrax/functions/remap).

@@ -1,0 +1,199 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-21T15:13:38.774807+00:00",
+  "title": "Design System: Hyrax",
+  "extensions": {
+    "colorMeta": {
+      "vermilion": {
+        "role": "primary",
+        "displayName": "Vermilion",
+        "canonical": "#ff6a3d",
+        "tonalRamp": [
+          "#3a1408",
+          "#5c1f0d",
+          "#8a2e12",
+          "#b5330b",
+          "#e0521f",
+          "#ff6a3d",
+          "#ff9670",
+          "#ffc7b0"
+        ]
+      },
+      "graphite": {
+        "role": "neutral",
+        "displayName": "Warm Graphite",
+        "canonical": "#0d0c0b",
+        "tonalRamp": [
+          "#090807",
+          "#0d0c0b",
+          "#161513",
+          "#1f1d1a",
+          "#2c2925",
+          "#4a4640",
+          "#8f897f",
+          "#f4f1ec"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Warm Paper",
+        "canonical": "#fbf9f6",
+        "tonalRamp": [
+          "#1b1815",
+          "#57514a",
+          "#6a645a",
+          "#b9b3a9",
+          "#ece7df",
+          "#f2eee8",
+          "#f6f3ee",
+          "#fbf9f6"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "The home headline only."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Page titles."
+      },
+      "code": {
+        "displayName": "Code",
+        "purpose": "Code blocks, labs, inline code, import paths."
+      }
+    },
+    "shadows": [
+      {
+        "name": "menu",
+        "value": "0 12px 40px rgba(0,0,0,0.22)",
+        "purpose": "Menus and the search modal only. Resting panels have no shadow."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out-expo",
+        "value": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "purpose": "Tab underline, dots on the number track, arrow nudges, size bars."
+      },
+      {
+        "name": "state",
+        "value": "150ms",
+        "purpose": "Colour and border changes on hover."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "stack",
+        "value": "1100px"
+      },
+      {
+        "name": "nav",
+        "value": "960px"
+      },
+      {
+        "name": "narrow",
+        "value": "640px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The main action: Get started.",
+      "html": "<a class=\"ds-btn-primary\" href=\"#\">Get started</a>",
+      "css": ".ds-btn-primary{display:inline-flex;align-items:center;height:44px;padding:0 20px;border-radius:10px;background:#ff6a3d;color:#1a0e08;font:600 15px Geist,system-ui,sans-serif;text-decoration:none;transition:background-color .15s}.ds-btn-primary:hover{background:#ff8259}.ds-btn-primary:focus-visible{outline:2px solid #ff6a3d;outline-offset:2px}"
+    },
+    {
+      "name": "Quiet Button",
+      "kind": "button",
+      "refersTo": "button-quiet",
+      "description": "A secondary action beside the primary.",
+      "html": "<a class=\"ds-btn-quiet\" href=\"#\">API reference</a>",
+      "css": ".ds-btn-quiet{display:inline-flex;align-items:center;height:44px;padding:0 20px;border-radius:10px;border:1px solid rgba(255,240,220,.17);color:#f4f1ec;font:600 15px Geist,system-ui,sans-serif;text-decoration:none;transition:background-color .15s}.ds-btn-quiet:hover{background:#1f1d1a}.ds-btn-quiet:focus-visible{outline:2px solid #ff6a3d;outline-offset:2px}"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "field",
+      "description": "The seed and string inputs of the labs.",
+      "html": "<input class=\"ds-field\" value=\"level-1\" />",
+      "css": ".ds-field{height:44px;padding:0 14px;border:1px solid rgba(255,240,220,.17);border-radius:10px;background:#161513;color:#f4f1ec;font:450 15px 'Geist Mono',ui-monospace,monospace}.ds-field:hover{border-color:#8f897f}.ds-field:focus-visible{outline:2px solid #ff6a3d;outline-offset:2px}"
+    },
+    {
+      "name": "Chip",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Chooses a preset; the selected chip takes the accent wash.",
+      "html": "<button class=\"ds-chip\" aria-pressed=\"true\">int(1, 100)</button>",
+      "css": ".ds-chip{height:32px;padding:0 12px;border:1px solid rgba(255,240,220,.17);border-radius:8px;background:transparent;color:#b9b3a9;font:450 12.5px 'Geist Mono',ui-monospace,monospace}.ds-chip:hover{background:#1f1d1a;color:#f4f1ec}.ds-chip[aria-pressed=true]{background:rgba(255,106,61,.13);border-color:rgba(255,122,79,.42);color:#ff7a4f}"
+    },
+    {
+      "name": "Checked Code Block",
+      "kind": "custom",
+      "refersTo": "code-panel",
+      "description": "A code panel whose header says what the checker did; asserted answers carry the accent.",
+      "html": "<div class=\"ds-code\"><div class=\"ds-code__bar\"><span class=\"ds-code__dot\"></span>Run, answers asserted</div><pre>clamp(15, 0, 10);   <span class=\"ds-c\">// =></span> <b>10</b></pre></div>",
+      "css": ".ds-code{border:1px solid rgba(255,240,220,.09);border-radius:12px;background:#161513;color:#e4e0d8;overflow:hidden;font:13.5px/1.75 'Geist Mono',ui-monospace,monospace}.ds-code__bar{display:flex;align-items:center;gap:8px;height:40px;padding:0 16px;border-bottom:1px solid rgba(255,240,220,.09);font:500 12.5px Geist,system-ui,sans-serif;color:#ff7a4f}.ds-code__dot{width:14px;height:14px;border-radius:50%;background:#ff7a4f}.ds-code pre{margin:0;padding:14px 20px}.ds-c{color:#8d877d}.ds-code b{color:#ff7a4f;font-weight:560}"
+    },
+    {
+      "name": "Tabs",
+      "kind": "nav",
+      "refersTo": "chip-selected",
+      "description": "Playground and entrypoint tabs with a scaling underline.",
+      "html": "<div class=\"ds-tabs\"><button aria-selected=\"true\">Numbers <i>clamp, ratio</i></button><button>Strings</button></div>",
+      "css": ".ds-tabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid rgba(255,240,220,.09)}.ds-tabs button{position:relative;padding:10px 14px 12px;border:0;background:transparent;color:#8f897f;font:600 14.5px Geist,system-ui,sans-serif}.ds-tabs i{font:400 13px Geist,system-ui,sans-serif;margin-left:8px}.ds-tabs button[aria-selected=true]{color:#f4f1ec}.ds-tabs button[aria-selected=true]::after{content:'';position:absolute;left:10px;right:10px;bottom:0;height:2px;border-radius:2px;background:#ff6a3d}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Live Bench",
+    "overview": "Every page is a bench you can touch. The documentation stops being text with pasted code: a function's answer sits beside its code, computed by the real library, and the reader can drag a value or change a seed before reading on. Dark first, precise and a little warm: graphite ground, hairline panels, one vermilion accent, a single family of type.",
+    "keyCharacteristics": [
+      "One warm graphite ground with panels one tonal step up and 1px hairlines; no resting shadows.",
+      "One accent, vermilion, that carries active, verified and primary.",
+      "Geist for reading and interface, Geist Mono for code, numbers and import paths.",
+      "Live labs: an inset stage with real controls beside code whose results are computed by the library.",
+      "Every code block states what the checker did to it, in its header, by shape and words."
+    ],
+    "rules": [
+      {
+        "name": "The True-Only Accent Rule",
+        "body": "Vermilion is used for what is true or current: asserted answers, the active page, the primary action. It never decorates, and it never appears in syntax colours.",
+        "section": "colors"
+      },
+      {
+        "name": "The Warm Neutral Rule",
+        "body": "Neutrals lean warm (hue near 60); nothing is a cold blue-grey.",
+        "section": "colors"
+      },
+      {
+        "name": "The Mono Means Data Rule",
+        "body": "Monospace is for code, import paths, sizes and numbers you could type. Headings and labels stay in Geist.",
+        "section": "typography"
+      },
+      {
+        "name": "The Border Or Shadow Rule",
+        "body": "A surface declares its edge once: a hairline. Never a hairline over a wide shadow.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do keep vermilion for what is true or current: asserted answers, the active page, the main action.",
+      "Do give every code block its state in the header, by shape and words; add new example pages to `sheets.ts` so their facts row exists.",
+      "Do build new demos as labs: real controls on the stage, results computed by the source, never typed in.",
+      "Do keep motion to state changes of 120-250ms with an exponential ease-out, and honour reduced motion.",
+      "Do keep muted text at 4.5:1 or better on the surface it sits on, in both themes."
+    ],
+    "donts": [
+      "Don't draw the animal, a mascot or any character; the mark is a letter tile.",
+      "Don't put grid paper, dot grids, grain or any pattern behind content.",
+      "Don't use gradient text, glowing halos, or a colored side border above 1px.",
+      "Don't put orange in syntax colours.",
+      "Don't set labels or headings in monospace, or uppercase eyebrow labels above headings.",
+      "Don't nest panels inside panels or lay out a page as a grid of identical icon cards."
+    ]
+  }
+}

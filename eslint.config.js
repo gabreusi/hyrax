@@ -23,7 +23,12 @@ export default tseslint.config(
   ...tseslint.configs.recommendedTypeChecked,
   {
     languageOptions: {
-      parserOptions: { projectService: true, tsconfigRootDir: import.meta.dirname },
+      parserOptions: {
+        // The docs theme entry imports .vue and .css files, so it stays out of tsconfig.json
+        // (TypeDoc compiles that project) and is linted with the default project instead.
+        projectService: { allowDefaultProject: ["site/.vitepress/theme/*.ts"] },
+        tsconfigRootDir: import.meta.dirname,
+      },
     },
     rules: {
       "@typescript-eslint/consistent-type-imports": "error",

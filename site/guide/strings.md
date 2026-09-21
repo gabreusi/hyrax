@@ -1,5 +1,10 @@
 # Strings
 
+Case conversion that agrees on where the words are, and a builder for strings made of conditional parts, such as a
+`class` attribute.
+
+<StringLab />
+
 ## Changing case
 
 `toCamelCase`, `toPascalCase`, `toSnakeCase` and `toKebabCase` share one tokenizer, so they agree on where the words
@@ -96,4 +101,4 @@ new StringBuilder().append("x", "a-").remove("a-x").build(); // => ""
 
 ## Reference
 
-The full signatures, with every option and error, are in the API reference: [`toCamelCase`](/api/@gabreusi/hyrax/functions/toCamelCase), [`toPascalCase`](/api/@gabreusi/hyrax/functions/toPascalCase), [`toSnakeCase`](/api/@gabreusi/hyrax/functions/toSnakeCase), [`toKebabCase`](/api/@gabreusi/hyrax/functions/toKebabCase), [`splitWords`](/api/@gabreusi/hyrax/functions/splitWords), [`StringBuilder`](/api/@gabreusi/hyrax/classes/StringBuilder).
+The full signatures, with every option and error, are in the API reference: [`toCamelCase`](/api/hyrax/functions/toCamelCase), [`toPascalCase`](/api/hyrax/functions/toPascalCase), [`toSnakeCase`](/api/hyrax/functions/toSnakeCase), [`toKebabCase`](/api/hyrax/functions/toKebabCase), [`splitWords`](/api/hyrax/functions/splitWords), [`StringBuilder`](/api/hyrax/classes/StringBuilder).
