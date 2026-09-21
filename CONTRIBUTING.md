@@ -4,6 +4,11 @@
 
 Use Node 24 (`nvm use`, see `.nvmrc`; Node 22 or newer works) and install with `npm ci`.
 
+## One-time setup for the browser tests
+
+The `/dom` tests that depend on layout run in a real Chromium. Install it once with
+`npx playwright install chromium` (on Linux CI: `--with-deps`). `npm test` needs none of this.
+
 ## Commands
 
 | Command                  | What it does                                                                                       |
@@ -53,3 +58,16 @@ the summary and the `@example`; the rest is on review.
   to produce, so they are deterministic and still mean something.
 - **A seed's output is a contract.** Vectors in `random*.test.ts` and the values in `scripts/smoke.mjs` may only
   change together with a major version.
+
+## Testing `/dom`
+
+- **Where a test goes.** Logic that a simulated DOM handles (events, cleanup, options) goes in `name.test.ts`
+  (happy-dom). What needs a real browser goes in `name.browser.test.ts` (Chromium): layout (`em`, `%`, `dvh`,
+  `calc()`), Shadow DOM event retargeting, real mouse clicks, and any regression that happy-dom would not notice.
+  happy-dom does not resolve `%` or `dvh`, does not inherit custom properties from `<html>`, does not retarget
+  shadow events, computes `composedPath()` when called (not at dispatch) and removes a capture listener even when
+  the removal forgets the capture flag: a test for those behaviours passes there and proves nothing.
+- **Server-side rendering.** Every function has a `name.ssr.test.ts` that starts with
+  `// @vitest-environment node` and checks it returns its fallback (or a no-op) instead of throwing.
+- **No imports from `src/core`.** `/dom` is self-contained: an import from the core would make the build emit a
+  shared chunk and tie the two entrypoints together.

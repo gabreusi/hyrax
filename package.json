@@ -152,6 +152,24 @@
       "path": "dist/index.js",
       "import": "{ Suspend }",
       "limit": "700 B"
+    },
+    {
+      "name": "dom entrypoint, everything",
+      "path": "dist/dom.js",
+      "import": "*",
+      "limit": "1.5 kB"
+    },
+    {
+      "name": "dom entrypoint, listen only",
+      "path": "dist/dom.js",
+      "import": "{ listen }",
+      "limit": "150 B"
+    },
+    {
+      "name": "dom entrypoint, toPixels only",
+      "path": "dist/dom.js",
+      "import": "{ toPixels }",
+      "limit": "900 B"
     }
   ]
 }
