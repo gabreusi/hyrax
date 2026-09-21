@@ -32,9 +32,13 @@ const subscribe = () => () => {};
  *
  * @example
  * ```tsx
- * <Portal open={isOpen}>
- *   <div role="dialog">Hello</div>
- * </Portal>
+ * function Dialog({ isOpen }: { isOpen: boolean }) {
+ *   return (
+ *     <Portal open={isOpen}>
+ *       <div role="dialog">Hello</div>
+ *     </Portal>
+ *   );
+ * }
  * ```
  *
  * @param props - See {@link PortalProps}.

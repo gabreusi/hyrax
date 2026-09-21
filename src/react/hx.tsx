@@ -146,12 +146,19 @@ const wrappers = new WeakMap<ComponentType<AnyProps>, NamedExoticComponent<AnyPr
  *
  * @example
  * ```tsx
- * <hx.div display="flex" padding="8px" rendered={isVisible}>
- *   <hx.canvas width={300} height={150} />
- * </hx.div>
- *
+ * function Card({ title }: { title: string }) {
+ *   return <article>{title}</article>;
+ * }
  * const MaybeCard = hx(Card);
- * <MaybeCard rendered={false} />
+ *
+ * function Page({ isVisible }: { isVisible: boolean }) {
+ *   return (
+ *     <hx.div display="flex" padding="8px" rendered={isVisible}>
+ *       <hx.canvas width={300} height={150} />
+ *       <MaybeCard title="Hello" rendered={false} />
+ *     </hx.div>
+ *   );
+ * }
  * ```
  */
 export const hx: HxType = /* @__PURE__ */ new Proxy(() => {}, {

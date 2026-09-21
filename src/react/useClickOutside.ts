@@ -36,9 +36,22 @@ function elements(refs: ClickOutsideRefs): (Element | null)[] {
  *
  * @example
  * ```tsx
- * const popup = useRef<HTMLDivElement>(null);
- * const opener = useRef<HTMLButtonElement>(null);
- * useClickOutside(popup, () => setOpen(false), { ignore: opener });
+ * import { useRef, useState } from "react";
+ *
+ * function Menu() {
+ *   const [open, setOpen] = useState(false);
+ *   const popup = useRef<HTMLDivElement>(null);
+ *   const opener = useRef<HTMLButtonElement>(null);
+ *   useClickOutside(popup, () => setOpen(false), { ignore: opener });
+ *   return (
+ *     <>
+ *       <button ref={opener} onClick={() => setOpen(!open)}>
+ *         Menu
+ *       </button>
+ *       {open && <div ref={popup}>Items</div>}
+ *     </>
+ *   );
+ * }
  * ```
  *
  * @param refs - What counts as inside: a ref, an element, or a list of them.

@@ -4,11 +4,12 @@
  *
  * @example
  * ```ts
+ * const width = 800;
  * const size = fabricate(() => {
  *   if (width < 600) return "small";
  *   if (width < 1200) return "medium";
  *   return "large";
- * });
+ * }); // => "medium"
  * ```
  *
  * @param callback - The function to run.

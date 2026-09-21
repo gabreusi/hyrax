@@ -1,3 +1,8 @@
+/**
+ * The universal entrypoint: it runs in Node, browsers, Deno and Bun, with no DOM and no React.
+ *
+ * @module @gabreusi/hyrax
+ */
 export { alias } from "./core/alias";
 export { clamp, lerp, ratio, remap } from "./core/number";
 export { coalesce } from "./core/nullish";

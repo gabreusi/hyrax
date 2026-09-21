@@ -1,0 +1,24 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": ["src/index.ts", "src/dom/index.ts", "src/react/index.ts"],
+  "tsconfig": "tsconfig.json",
+  "out": "site/api",
+  "docsRoot": "./site",
+  "plugin": ["typedoc-plugin-markdown", "typedoc-vitepress-theme"],
+  "readme": "none",
+  "name": "Hyrax API",
+  "excludeInternal": true,
+  // A fixed revision, so the links do not depend on where the docs were built.
+  "gitRevision": "main",
+  "sourceLinkTemplate": "https://github.com/gabreusi/hyrax/blob/{gitRevision}/{path}#L{line}",
+  // Helper types that shape a public signature but are not part of the API: they are named in the
+  // signature and explained in the guides, and exporting them would only widen what is promised.
+  "intentionallyNotExported": [
+    "Shortcuts",
+    "NativeKeys",
+    "shortcutKeys",
+    "UnionToIntersection",
+    "AliasFor"
+  ],
+  "treatWarningsAsErrors": true
+}

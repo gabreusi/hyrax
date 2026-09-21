@@ -5,9 +5,14 @@
  *
  * @example
  * ```ts
- * const alice = { name: "Alice", manager: null };
- * const bob = { name: "Bob", manager: alice };
- * const carol = { name: "Carol", manager: bob };
+ * interface Person {
+ *   name: string;
+ *   manager: Person | null;
+ * }
+ *
+ * const alice: Person = { name: "Alice", manager: null };
+ * const bob: Person = { name: "Bob", manager: alice };
+ * const carol: Person = { name: "Carol", manager: bob };
  *
  * traceHierarchy(carol, "manager").map((e) => e.name); // => ["Carol", "Bob", "Alice"]
  * ```

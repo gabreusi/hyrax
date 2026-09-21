@@ -26,6 +26,7 @@ const PROBE_STYLE =
  *
  * @example
  * ```ts
+ * const container = document.querySelector<HTMLElement>("#panel")!;
  * toPixels("2em"); // => 32 when the page font size is 16px
  * toPixels("50%", container); // => half the width of `container`
  * toPixels("calc(100vh - var(--header))"); // => a number of pixels

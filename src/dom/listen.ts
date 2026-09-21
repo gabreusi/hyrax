@@ -52,6 +52,7 @@ export function listen<K extends keyof DocumentEventMap>(
  *
  * @example
  * ```ts
+ * const button = document.createElement("button");
  * const off = listen(button, "click", (event) => console.log(event.clientX));
  * ```
  *

@@ -113,8 +113,9 @@ export class Random extends RandomBase {
    *
    * @example
    * ```ts
+   * const rng = new Random("save-slot");
    * const saved = JSON.stringify(rng.state());
-   * Random.restore(JSON.parse(saved)); // continues where `rng` is now
+   * Random.restore(JSON.parse(saved)).next() === rng.next(); // => true
    * ```
    *
    * @returns The state.
@@ -128,6 +129,7 @@ export class Random extends RandomBase {
    *
    * @example
    * ```ts
+   * const rng = new Random("save-slot");
    * const copy = Random.restore(rng.state());
    * copy.next() === rng.next(); // => true
    * ```

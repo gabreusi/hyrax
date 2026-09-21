@@ -6,6 +6,8 @@ import { useCallback, useState } from "react";
  *
  * @example
  * ```tsx
+ * import { useRef } from "react";
+ *
  * function Clicks() {
  *   const forceUpdate = useForceUpdate();
  *   const count = useRef(0);

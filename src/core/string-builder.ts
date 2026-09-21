@@ -19,6 +19,8 @@ export interface StringBuilderOptions {
  *
  * @example
  * ```ts
+ * const isPrimary = true;
+ * const isDanger = false;
  * const classes = new StringBuilder()
  *   .append("btn")
  *   .if(isPrimary, "primary", "btn--")
@@ -88,7 +90,8 @@ export class StringBuilder {
    *
    * @example
    * ```ts
-   * new StringBuilder().if(isOpen, "open").build();
+   * const isOpen = true;
+   * new StringBuilder().if(isOpen, "open").build(); // => "open"
    * ```
    *
    * @param condition - Any value; truthy means the branch matches.
@@ -106,7 +109,9 @@ export class StringBuilder {
    *
    * @example
    * ```ts
-   * new StringBuilder().if(a, "a").elif(b, "b").build();
+   * const a = false;
+   * const b = true;
+   * new StringBuilder().if(a, "a").elif(b, "b").build(); // => "b"
    * ```
    *
    * @param condition - Any value; truthy means the branch matches.
@@ -125,7 +130,8 @@ export class StringBuilder {
    *
    * @example
    * ```ts
-   * new StringBuilder().if(a, "a").else("fallback").build();
+   * const a = false;
+   * new StringBuilder().if(a, "a").else("fallback").build(); // => "fallback"
    * ```
    *
    * @param text - The part to add.

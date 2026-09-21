@@ -399,7 +399,7 @@ type-check e o smoke test contra o React 18 e seus tipos.
   `typescript-eslint` declara suporte a `typescript < 6.1`.
 - Vitest com testes ao lado do código, `happy-dom` e Testing Library para `/react`, `expectTypeOf` para tipos
   públicos, `fast-check` para propriedades (`clamp`, `remap`, casing, `shuffle`), vetores fixos para `Random`. `/dom`
-  também roda em **Chromium real** (`@vitest/browser-playwright`, projeto `dom-browser`). Cobertura mínima de 95% no
+  também roda em **Chromium real** (`@vitest/browser-playwright`, projeto `browser`, que também cobre o `/react`). Cobertura mínima de 95% no
   `core` e no `dom`, somando os três ambientes. `npm test` roda só o que não precisa de navegador; `npm run
   test:coverage` roda tudo e exige `npx playwright install chromium` uma vez.
 - ESLint (flat config, typescript-eslint, `react-hooks` só em `/react`) e Prettier. Uma regra exige TSDoc com
@@ -426,13 +426,37 @@ precisam de `moduleResolution` `node16`, `nodenext` ou `bundler` para resolver `
 `bugs`, `homepage`, `keywords` apontando para `gabreusi/hyrax`.
 
 ### Documentação
-- Site VitePress no GitHub Pages, com busca local. Páginas: *Getting started*, um guia por módulo (com o
-  porquê), *Design notes* (contrato de determinismo, runtimes suportados), guia de migração 0.x → 1.0 e
-  referência de API gerada do TSDoc via TypeDoc.
-- README enxuto: badges, instalação, exemplo de 10 linhas, tabela dos três entrypoints.
-- Exemplos testados: um script extrai os blocos `@example` do TSDoc e os executa, transformando `// => valor`
-  em asserções. É o único tooling customizado e o mais caro de manter. Fallback se ficar frágil: só
-  type-check dos exemplos.
+
+O site é em inglês (é a documentação de uma biblioteca de npm) e fica em `site/` (o `docs/` guarda os specs e os planos).
+
+- **VitePress 1.6** (a 2.0 ainda é alpha) no GitHub Pages (`https://gabreusi.github.io/hyrax/`, `base: "/hyrax/"`), com busca local.
+  Páginas: *Getting started*, um guia por módulo (números, textos, `Random`, ajudantes, `Suspend`, `/dom`, `/react`, cada um com o
+  porquê e uma seção "Reference"), *Design notes* (contrato de determinismo, runtimes suportados, tamanhos, exemplos testados,
+  camadas), guia de migração 0.x → 1.0 e a referência de API.
+- **Referência de API gerada** do TSDoc pelo TypeDoc 0.28 (que suporta o TypeScript 6.0), com `typedoc-plugin-markdown` e
+  `typedoc-vitepress-theme`. Vai para `site/api/`, **não é versionada** e é gerada em todo build. Um comentário `@module` em cada
+  barrel dá o nome do módulo; `treatWarningsAsErrors` está ligado, e os tipos que aparecem numa assinatura pública sem serem
+  exportados (`Shortcuts`, `NativeKeys`, `shortcutKeys`, `UnionToIntersection`, `AliasFor`) ficam em `intentionallyNotExported`,
+  porque exportá-los ampliaria o que se promete. O VitePress falha o build com um link quebrado, e isso cobre os links dos guias
+  para a API.
+- **README enxuto:** selos, instalação, um exemplo curto, a tabela dos três entrypoints e o link para o site.
+- **Exemplos testados** (`scripts/check-examples.mjs`, com a lógica pura em `scripts/examples/assertions.mjs`, testada à parte). É o
+  único tooling customizado e o mais caro de manter. Extrai os `@example` do TSDoc (pela API do compilador) e as cercas `ts` e `tsx`
+  dos guias e do README. **Todos** têm os tipos conferidos contra o **pacote construído** (`@gabreusi/hyrax` resolve pela própria
+  `exports`, então o que se confere são os tipos publicados), e os do **núcleo** (`src/core`, `src/index.ts`, os guias do núcleo e o
+  README) também são **executados**, com `// => valor` virando uma asserção. `/dom` e `/react` só têm os tipos conferidos, porque
+  precisam de um navegador ou de um componente: é o "fallback" que o spec previa, aplicado só onde precisa.
+  - O valor esperado tem de ser um **literal** (número, texto, booleano, `null`, `undefined`, `NaN`, `Infinity`, array ou objeto
+    disso). O resto depois de `=>` é prosa e a linha só executa. "É uma expressão válida" não basta:
+    `// => Uint8Array [ 213, 7, 88, 140 ]` é um acesso por índice com vírgula.
+  - Um `// =>` só vale depois de uma expressão ou de um único `const x = ...`; em qualquer outro comando é um erro.
+  - Os nomes do Hyrax estão em escopo (importados do entrypoint certo, a menos que o trecho importe dele), todo outro `import` é
+    escrito, e o trecho declara o que usa. Nos guias, `<!-- untested -->` na linha antes de uma cerca a pula.
+  - Achado da primeira execução: 36 dos 81 `@example` não eram autossuficientes (variáveis soltas, fragmentos de componente), e o de
+    `traceHierarchy` não compilava com literais de objeto (é preciso declarar uma `interface`).
+- **CI:** o job `docs` constrói o pacote, confere os exemplos e constrói o site em todo PR. O `docs.yml` publica no GitHub Pages a
+  partir do `main`, mas só com o Pages configurado para publicar por GitHub Actions **e** a variável `DOCS_DEPLOY` igual a `true`:
+  sem isso o job aparece como *skipped*, e não como falha.
 
 ## 7. Guia de migração (mapa 0.x → 1.0)
 
@@ -493,3 +517,7 @@ Não bloqueiam o design, mas precisam ser resolvidas antes da fase 6.
 4. O `gh` local está autenticado como `gpsign`, mas o remote é `gabreusi/hyrax`. O CI usa a identidade do
    próprio Actions, mas pushes locais podem exigir trocar a conta.
 5. Configurar o trusted publisher no npm (repositório e workflow) antes do primeiro `publish`.
+6. Habilitar o GitHub Pages (Settings, Pages, Source: *GitHub Actions*) e criar a variável de repositório `DOCS_DEPLOY` igual a
+   `true`. O site é construído e checado em todo PR, mas só é publicado depois disso.
+7. Na Fase 6, junto com o primeiro `publish`: tirar o aviso "Not published yet" do *Getting started* e a nota de *Status* do
+   README, e pôr o selo do npm no README.
