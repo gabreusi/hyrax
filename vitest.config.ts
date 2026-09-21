@@ -13,6 +13,15 @@ export default defineConfig({
         },
       },
       {
+        // The tooling in scripts/ (the examples checker).
+        extends: true,
+        test: {
+          name: "scripts",
+          environment: "node",
+          include: ["scripts/**/*.test.mjs"],
+        },
+      },
+      {
         extends: true,
         test: {
           name: "dom",
