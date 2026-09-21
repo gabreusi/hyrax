@@ -34,6 +34,9 @@ The `/dom` and `/react` tests that need a real browser (layout, Shadow DOM, real
 - `src/core` is universal: no `window`, `document` or Node-only APIs. The compiler enforces it (no DOM lib there).
 - Only named exports. No default export and no aggregate object.
 - Commit messages follow Conventional Commits (`feat:`, `fix:`, `docs:`, `build:`, `ci:`, `test:`, `chore:`).
+- **The lockfile is written by npm 10**, the npm that Node 22 ships and the oldest one CI installs with:
+  `npx -y npm@10 install --package-lock-only --ignore-scripts`. A lockfile written by npm 12 failed `npm ci` on npm 10
+  (`Missing: react@18.3.1 from lock file`) while npm 11 and 12 accepted it, and only the Node 22 job of the CI noticed.
 
 ## Writing TSDoc
 
