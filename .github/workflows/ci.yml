@@ -100,6 +100,22 @@ jobs:
           path: pack/*.tgz
           if-no-files-found: error
 
+  bundlers:
+    name: Bundlers (esbuild, Vite, webpack)
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - uses: actions/download-artifact@v8
+        with:
+          name: tarball
+          path: pack
+      # Tree-shaking and size, as an app would bundle the installed package.
+      - run: node scripts/smoke-bundlers.mjs pack/*.tgz
+
   docs:
     name: Docs (examples and site)
     runs-on: ubuntu-latest

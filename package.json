@@ -74,7 +74,7 @@
     "check:boundary": "node scripts/check-core-boundary.mjs",
     "check:package": "publint && attw --pack . --profile node16 && node scripts/check-pack.mjs",
     "smoke": "node scripts/smoke.mjs",
-    "check": "npm run lint && npm run format:check && npm run typecheck && npm run check:boundary && npm run test:coverage && npm run build && npm run check:package && npm run size && npm run smoke && npm run docs:examples && npm run docs:build",
+    "check": "npm run lint && npm run format:check && npm run typecheck && npm run check:boundary && npm run test:coverage && npm run build && npm run check:package && npm run size && npm run smoke && npm run smoke:bundlers && npm run docs:examples && npm run docs:build",
     "size": "size-limit",
     "bench": "npm run build && node scripts/bench.mjs",
     "test:browser": "vitest run --project browser",
@@ -83,7 +83,8 @@
     "docs:build": "npm run docs:api && vitepress build site",
     "docs:dev": "npm run docs:api && vitepress dev site",
     "docs:preview": "vitepress preview site",
-    "prepublishOnly": "npm run build && publint && node scripts/check-pack.mjs --publish"
+    "prepublishOnly": "npm run build && publint && node scripts/check-pack.mjs --publish",
+    "smoke:bundlers": "node scripts/smoke-bundlers.mjs"
   },
   "peerDependencies": {
     "react": ">=18",
