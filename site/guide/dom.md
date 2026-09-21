@@ -6,8 +6,6 @@ JavaScript. The React hooks are a thin layer over `listen` and `onClickOutside`.
 Every function is **safe to import and call where there is no `document`** (a server render, a worker, Node): it returns
 its fallback, or does nothing, and never throws. Nothing runs when you import the module.
 
-The examples on this page are type-checked but not run, because they need a browser.
-
 ## `getCSSVar`
 
 `getCSSVar(name, fallback?)` reads a custom property from `:root`, trimmed. A missing or empty property gives the
@@ -104,4 +102,4 @@ dialog = document.createElement("div");
 
 ## Reference
 
-The full signatures, with every option and error, are in the API reference: [`getCSSVar`](/api/@gabreusi/hyrax/dom/functions/getCSSVar), [`toPixels`](/api/@gabreusi/hyrax/dom/functions/toPixels), [`listen`](/api/@gabreusi/hyrax/dom/functions/listen), [`onClickOutside`](/api/@gabreusi/hyrax/dom/functions/onClickOutside).
+The full signatures, with every option and error, are in the API reference: [`getCSSVar`](/api/hyrax/dom/functions/getCSSVar), [`toPixels`](/api/hyrax/dom/functions/toPixels), [`listen`](/api/hyrax/dom/functions/listen), [`onClickOutside`](/api/hyrax/dom/functions/onClickOutside).

@@ -4,6 +4,8 @@
 (the same seed gives the same numbers, everywhere), it has **no modulo bias**, and it has a cryptographic mode for
 secrets. It also has a "luck" setting, for games.
 
+<RandomLab />
+
 ## Quick use
 
 `random` is a ready-made instance with no seed, for when you just want a number:
@@ -151,4 +153,4 @@ secure.uuid(); // an unpredictable version 4 UUID
 
 ## Reference
 
-The full signatures, with every option and error, are in the API reference: [`Random`](/api/@gabreusi/hyrax/classes/Random), [`random`](/api/@gabreusi/hyrax/variables/random), [`SecureRandom`](/api/@gabreusi/hyrax/interfaces/SecureRandom), [`RandomOptions`](/api/@gabreusi/hyrax/interfaces/RandomOptions), [`RandomState`](/api/@gabreusi/hyrax/interfaces/RandomState).
+The full signatures, with every option and error, are in the API reference: [`Random`](/api/hyrax/classes/Random), [`random`](/api/hyrax/variables/random), [`SecureRandom`](/api/hyrax/interfaces/SecureRandom), [`RandomOptions`](/api/hyrax/interfaces/RandomOptions), [`RandomState`](/api/hyrax/interfaces/RandomState).

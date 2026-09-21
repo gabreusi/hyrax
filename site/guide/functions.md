@@ -1,6 +1,8 @@
 # Everyday helpers
 
-Small functions that remove a little friction from everyday code.
+The helpers every codebase grows by hand, written once with their edge cases settled: a nullish-aware `coalesce`, a
+block expression, number parsing that refuses what it cannot trust, a hierarchy walker, a property aliaser, and `noop`.
+The four utility types at the end are the ones their signatures use.
 
 ## `coalesce`
 
@@ -134,4 +136,4 @@ watch();
 
 ## Reference
 
-The full signatures, with every option and error, are in the API reference: [`coalesce`](/api/@gabreusi/hyrax/functions/coalesce), [`fabricate`](/api/@gabreusi/hyrax/functions/fabricate), [`isNumeric`](/api/@gabreusi/hyrax/functions/isNumeric), [`toNumber`](/api/@gabreusi/hyrax/functions/toNumber), [`traceHierarchy`](/api/@gabreusi/hyrax/functions/traceHierarchy), [`alias`](/api/@gabreusi/hyrax/functions/alias), [`noop`](/api/@gabreusi/hyrax/functions/noop).
+The full signatures, with every option and error, are in the API reference: [`coalesce`](/api/hyrax/functions/coalesce), [`fabricate`](/api/hyrax/functions/fabricate), [`isNumeric`](/api/hyrax/functions/isNumeric), [`toNumber`](/api/hyrax/functions/toNumber), [`traceHierarchy`](/api/hyrax/functions/traceHierarchy), [`alias`](/api/hyrax/functions/alias), [`noop`](/api/hyrax/functions/noop).

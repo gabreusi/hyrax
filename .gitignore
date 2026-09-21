@@ -9,3 +9,7 @@ coverage
 site/api
 site/.vitepress/dist
 site/.vitepress/cache
+.impeccable/review
+.impeccable/decision
+.impeccable/mocks
+.impeccable/questions

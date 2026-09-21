@@ -37,4 +37,4 @@ It reads the wall clock (`Date.now()`), so changing the system clock by hand can
 
 ## Reference
 
-The full signatures, with every option and error, are in the API reference: [`Suspend`](/api/@gabreusi/hyrax/classes/Suspend), [`SuspendOptions`](/api/@gabreusi/hyrax/interfaces/SuspendOptions).
+The full signatures, with every option and error, are in the API reference: [`Suspend`](/api/hyrax/classes/Suspend), [`SuspendOptions`](/api/hyrax/interfaces/SuspendOptions).

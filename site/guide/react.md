@@ -4,8 +4,6 @@
 [`@gabreusi/hyrax/dom`](./dom), it renders on the server without a `document`, and the entrypoint starts with
 `"use client"` so that Next.js and other Server Components bundlers know where the client boundary is.
 
-The examples on this page are type-checked but not run, because they are components.
-
 ## `useEventListener`
 
 `useEventListener(target, type, handler, options?)` listens for as long as the component is mounted. The handler is read
@@ -184,4 +182,4 @@ function Panel() {
 
 ## Reference
 
-The full signatures, with every option and error, are in the API reference: [`useEventListener`](/api/@gabreusi/hyrax/react/functions/useEventListener), [`useClickOutside`](/api/@gabreusi/hyrax/react/functions/useClickOutside), [`useInterval`](/api/@gabreusi/hyrax/react/functions/useInterval), [`useForceUpdate`](/api/@gabreusi/hyrax/react/functions/useForceUpdate), [`Portal`](/api/@gabreusi/hyrax/react/functions/Portal), [`hx`](/api/@gabreusi/hyrax/react/variables/hx).
+The full signatures, with every option and error, are in the API reference: [`useEventListener`](/api/hyrax/react/functions/useEventListener), [`useClickOutside`](/api/hyrax/react/functions/useClickOutside), [`useInterval`](/api/hyrax/react/functions/useInterval), [`useForceUpdate`](/api/hyrax/react/functions/useForceUpdate), [`Portal`](/api/hyrax/react/functions/Portal), [`hx`](/api/hyrax/react/variables/hx).

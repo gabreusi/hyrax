@@ -1,6 +1,7 @@
 # Design notes
 
-The decisions behind Hyrax, for when you want to know why it works the way it does.
+Why Hyrax works the way it does: what it promises, where it runs, what a seed freezes, what each import costs, and how
+the examples on these pages are kept honest.
 
 ## What it is
 
