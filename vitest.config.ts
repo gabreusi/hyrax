@@ -22,12 +22,14 @@ export default defineConfig({
         },
       },
       {
-        // Layout and Shadow DOM need a real browser: happy-dom does not resolve `%`, `dvh` or
-        // `calc()`, and it does not retarget events that come out of a shadow tree.
+        // Layout, Shadow DOM and real pointer events need a real browser: happy-dom does not resolve
+        // `%`, `dvh` or `calc()`, does not retarget events that come out of a shadow tree, and
+        // removes a capture listener even when the removal forgets the capture flag.
         extends: true,
         test: {
-          name: "dom-browser",
-          include: ["src/dom/**/*.browser.test.ts"],
+          name: "browser",
+          include: ["src/dom/**/*.browser.test.ts", "src/react/**/*.browser.test.tsx"],
+          setupFiles: ["./src/react/test-setup.ts"],
           browser: {
             enabled: true,
             headless: true,
@@ -36,6 +38,17 @@ export default defineConfig({
             screenshotFailures: false,
           },
         },
+        // Listed up front: when Vite finds a dependency in the middle of a run it reloads the page,
+        // and a test can then end up with two copies of React ("reading 'useState'").
+        optimizeDeps: {
+          include: [
+            "react",
+            "react/jsx-dev-runtime",
+            "react-dom",
+            "react-dom/client",
+            "@testing-library/react",
+          ],
+        },
       },
       {
         extends: true,
@@ -43,16 +56,19 @@ export default defineConfig({
           name: "react",
           environment: "happy-dom",
           include: ["src/react/**/*.test.{ts,tsx}"],
+          exclude: ["src/react/**/*.browser.test.tsx"],
+          setupFiles: ["./src/react/test-setup.ts"],
         },
       },
     ],
     coverage: {
       provider: "v8",
       include: ["src/**/*.{ts,tsx}"],
-      exclude: ["**/*.test.{ts,tsx}", "**/*.d.ts"],
+      exclude: ["**/*.test.{ts,tsx}", "**/*.d.ts", "**/test-setup.ts"],
       thresholds: {
         "src/core/**": { statements: 95, branches: 95, functions: 95, lines: 95 },
         "src/dom/**": { statements: 95, branches: 95, functions: 95, lines: 95 },
+        "src/react/**": { statements: 95, branches: 95, functions: 95, lines: 95 },
       },
     },
   },
