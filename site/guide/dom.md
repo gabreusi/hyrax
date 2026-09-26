@@ -1,7 +1,7 @@
 # DOM utilities
 
-`@gabreusi/hyrax/dom` has a handful of functions for the browser, with no framework: use them from Vue, Svelte, React or plain
-JavaScript. The React hooks are a thin layer over `listen` and `onClickOutside`.
+`@gabreusi/hyrax/dom` has functions for the browser, with no framework: use them from Vue, Svelte, React or plain
+JavaScript. The React hooks are a thin layer over them.
 
 Every function is **safe to import and call where there is no `document`** (a server render, a worker, Node): it returns
 its fallback, or does nothing, and never throws. Nothing runs when you import the module.
@@ -58,8 +58,8 @@ it is typed like the fallback, so check its shape when it may come from an older
 
 ## `observeSize` and `onVisible`
 
-`observeSize(element, callback, options?)` calls back whenever the size of the element changes, and once when it starts,
-with the `ResizeObserverEntry`. `onVisible(element, callback, options?)` calls back when the element enters the
+`observeSize(element, callback, options?)` calls back with the `ResizeObserverEntry` whenever the size of the element
+changes, and once right after it starts when the element already has a size. `onVisible(element, callback, options?)` calls back when the element enters the
 viewport; with `once: true` it stops after the first time, which is what lazy loading needs.
 
 ```ts
@@ -75,6 +75,40 @@ off();
 Both return the function that stops observing, like `listen`. A `null` element (a ref that is not set yet), a server
 render or a runtime without the observer do nothing. Leaving the viewport is not reported by `onVisible`; for that,
 use an `IntersectionObserver` directly.
+
+## `onKey`
+
+`onKey(target, combo, handler, options?)` calls the handler when a keyboard shortcut is pressed, and returns the
+function that stops listening, like `listen`. A combination is modifiers and a key joined by `+`, in any case, and a
+list matches any of them.
+
+```ts
+const off = onKey(window, "mod+k", () => console.log("open the palette"));
+onKey(document, ["Escape", "mod+."], () => console.log("close"));
+off();
+```
+
+`mod` is ⌘ on Apple devices and Ctrl elsewhere. Modifiers match exactly, so `"k"` does not fire on Ctrl+K. Letters and
+digits are also matched by the physical key, so `"alt+a"` works on a Mac, where Alt+A types `å`. A symbol such as `?`
+does not need `shift+`.
+
+Two defaults make it safe to bind single keys. A combination that types a character (`"/"`, `"k"`) is ignored while the
+user is typing in a field, and a match calls `preventDefault()`, so `mod+s` does not open the browser's save dialog.
+Both can be turned off with `ignoreInputs: false` and `preventDefault: false`.
+
+## `lockScroll`
+
+`lockScroll()` stops the page from scrolling, for a modal or a drawer, and returns the function that lets it scroll
+again. The width of the scrollbar that disappears is added as padding, so the content does not jump sideways.
+
+```ts
+const unlock = lockScroll();
+// ...the dialog is open...
+unlock();
+```
+
+Locks are counted: with two dialogs open, closing one keeps the page locked until the other closes too. It sets
+`overflow: hidden` on `<body>`, which older versions of iOS Safari ignored for touch scrolling.
 
 ## `copyText`
 
@@ -174,4 +208,4 @@ dialog = document.createElement("div");
 
 ## Reference
 
-The full signatures, with every option and error, are in the API reference: [`getCSSVar`](/api/hyrax/dom/functions/getCSSVar), [`toPixels`](/api/hyrax/dom/functions/toPixels), [`listen`](/api/hyrax/dom/functions/listen), [`onClickOutside`](/api/hyrax/dom/functions/onClickOutside), [`setCSSVar`](/api/hyrax/dom/functions/setCSSVar), [`readStorage`](/api/hyrax/dom/functions/readStorage), [`writeStorage`](/api/hyrax/dom/functions/writeStorage), [`observeSize`](/api/hyrax/dom/functions/observeSize), [`onVisible`](/api/hyrax/dom/functions/onVisible), [`copyText`](/api/hyrax/dom/functions/copyText).
+The full signatures, with every option and error, are in the API reference: [`getCSSVar`](/api/hyrax/dom/functions/getCSSVar), [`toPixels`](/api/hyrax/dom/functions/toPixels), [`listen`](/api/hyrax/dom/functions/listen), [`onClickOutside`](/api/hyrax/dom/functions/onClickOutside), [`setCSSVar`](/api/hyrax/dom/functions/setCSSVar), [`readStorage`](/api/hyrax/dom/functions/readStorage), [`writeStorage`](/api/hyrax/dom/functions/writeStorage), [`observeSize`](/api/hyrax/dom/functions/observeSize), [`onVisible`](/api/hyrax/dom/functions/onVisible), [`copyText`](/api/hyrax/dom/functions/copyText), [`onKey`](/api/hyrax/dom/functions/onKey), [`lockScroll`](/api/hyrax/dom/functions/lockScroll).

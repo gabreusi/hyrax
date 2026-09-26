@@ -5,9 +5,11 @@
  */
 export { alias } from "./core/alias";
 export { toArray } from "./core/array";
+export { retry, timeout, TimeoutError } from "./core/async";
+export type { AbortSignalLike, RetryOptions, RetryOptionsWithFallback } from "./core/async";
 export { attempt } from "./core/attempt";
 export type { Attempted } from "./core/attempt";
-export { approach, clamp, inRange, lerp, ratio, remap, snap, wrap } from "./core/number";
+export { approach, clamp, inRange, lerp, range, ratio, remap, snap, wrap } from "./core/number";
 export { coalesce } from "./core/nullish";
 export { fabricate } from "./core/fabricate";
 export { isNumeric, toBoolean, toInteger, toNumber } from "./core/numeric";
@@ -17,6 +19,7 @@ export type { RandomOptions, RandomState } from "./core/random";
 export type { SecureRandom } from "./core/secure-random";
 export {
   interpolate,
+  plural,
   slugify,
   splitWords,
   toCamelCase,
@@ -27,7 +30,13 @@ export {
   toTitleCase,
   truncate,
 } from "./core/string";
-export type { InterpolateFallback, TruncateOptions } from "./core/string";
+export type {
+  InterpolateFallback,
+  PluralCategory,
+  PluralForms,
+  PluralOptions,
+  TruncateOptions,
+} from "./core/string";
 export { StringBuilder } from "./core/string-builder";
 export type { StringBuilderOptions } from "./core/string-builder";
 export { Suspend } from "./core/suspend";

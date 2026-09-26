@@ -8,9 +8,12 @@ export { copyText } from "./copyText";
 export { getCSSVar } from "./getCSSVar";
 export { listen } from "./listen";
 export type { ListenOptions } from "./listen";
+export { lockScroll } from "./lockScroll";
 export { observeSize, onVisible } from "./observe";
 export type { OnVisibleOptions } from "./observe";
 export { onClickOutside } from "./onClickOutside";
+export { onKey } from "./onKey";
+export type { OnKeyOptions } from "./onKey";
 export type {
   ClickOutsideOptions,
   ClickOutsideTarget,

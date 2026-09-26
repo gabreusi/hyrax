@@ -247,3 +247,54 @@ export function approach(current: number, target: number, delta: number): number
   if (Number.isNaN(step)) return current;
   return current < target ? Math.min(current + step, target) : Math.max(current - step, target);
 }
+
+/**
+ * The numbers from `0` up to `end`, `end` excluded: `range(3)` is `[0, 1, 2]`, the indices of a
+ * list of three. A negative `end` counts down. An `end` that is not finite gives `[]`.
+ *
+ * @example
+ * ```ts
+ * range(4); // => [0, 1, 2, 3]
+ * range(-3); // => [0, -1, -2]
+ * range(0); // => []
+ * ```
+ *
+ * @param end - Where to stop (excluded).
+ * @returns The list of numbers.
+ */
+export function range(end: number): number[];
+/**
+ * The numbers from `start` toward `end`, `end` excluded, every `step`. It counts down when `end` is
+ * below `start`, whatever the sign of `step`, so a wrong sign never loops forever. The values are
+ * rounded to the decimal places of `start` and `step`, so `0.1` steps give `0.3` and not
+ * `0.30000000000000004`. A `step` of `0`, or a bound or step that is not finite, gives `[]`.
+ *
+ * @example
+ * ```ts
+ * range(1, 5); // => [1, 2, 3, 4]
+ * range(0, 1, 0.25); // => [0, 0.25, 0.5, 0.75]
+ * range(5, 0, 2); // => [5, 3, 1]
+ * range(0, 0.4, 0.1); // => [0, 0.1, 0.2, 0.3]
+ * range(0, 10, 0); // => []
+ * ```
+ *
+ * @param start - The first number.
+ * @param end - Where to stop (excluded).
+ * @param step - The distance between numbers (default `1`).
+ * @returns The list of numbers.
+ */
+export function range(start: number, end: number, step?: number): number[];
+export function range(a: number, b?: number, step = 1): number[] {
+  const [start, end] = b === undefined ? [0, a] : [a, b];
+  const size = Math.abs(step);
+  if (!Number.isFinite(start) || !Number.isFinite(end) || !Number.isFinite(size) || size === 0) {
+    return [];
+  }
+  const signed = end < start ? -size : size;
+  const places = Math.min(100, Math.max(decimals(start), decimals(size)));
+  // Rounded before `ceil`, or `0.3 / 0.1 = 2.9999999999999996` would decide the length by accident.
+  const count = Math.max(0, Math.ceil(Number(((end - start) / signed).toFixed(9))));
+  return Array.from({ length: count }, (_, index) =>
+    Number((start + index * signed).toFixed(places)),
+  );
+}

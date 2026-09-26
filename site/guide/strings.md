@@ -75,6 +75,29 @@ interpolate("{a} {b}", { a: 1 }, (key) => `<${key}>`); // => "1 <b>"
 
 Only the object's own properties are read, so `{constructor}` is not the function every object inherits.
 
+## `plural`
+
+`plural(count, forms, locale?)` picks the text that matches a count, with the rules of the language
+(`Intl.PluralRules`), and writes the count in place of `#`, formatted for that language.
+
+```ts
+plural(1, { one: "# item", other: "# items" }); // => "1 item"
+plural(3, { one: "# item", other: "# items" }); // => "3 items"
+plural(1000, { one: "# item", other: "# itens" }, "pt-BR"); // => "1.000 itens"
+plural(0, { one: "# item", other: "# itens" }, "pt-BR"); // => "0 item"
+```
+
+Languages have different categories (English has `one` and `other`, Polish adds `few` and `many`, Arabic has six). A
+category you leave out falls back to `other`, which is required, so the result is never `undefined`. For ordinals, pass
+`{ type: "ordinal" }`; for the common two-form case there is a short form.
+
+```ts
+plural(2, { one: "#st", two: "#nd", few: "#rd", other: "#th" }, { type: "ordinal" }); // => "2nd"
+plural(2, "# file", "# files"); // => "2 files"
+```
+
+The locale defaults to `"en"`, not to the machine's, so the server and the browser write the same text.
+
 ## `truncate`
 
 `truncate(text, length, ending = "…")` shortens text to at most `length` characters, the ending included. Text that
@@ -191,4 +214,4 @@ classes.size; // => 2
 
 ## Reference
 
-The full signatures, with every option and error, are in the API reference: [`toCamelCase`](/api/hyrax/functions/toCamelCase), [`toPascalCase`](/api/hyrax/functions/toPascalCase), [`toSnakeCase`](/api/hyrax/functions/toSnakeCase), [`toKebabCase`](/api/hyrax/functions/toKebabCase), [`toConstantCase`](/api/hyrax/functions/toConstantCase), [`toTitleCase`](/api/hyrax/functions/toTitleCase), [`splitWords`](/api/hyrax/functions/splitWords), [`slugify`](/api/hyrax/functions/slugify), [`interpolate`](/api/hyrax/functions/interpolate), [`truncate`](/api/hyrax/functions/truncate), [`StringBuilder`](/api/hyrax/classes/StringBuilder).
+The full signatures, with every option and error, are in the API reference: [`toCamelCase`](/api/hyrax/functions/toCamelCase), [`toPascalCase`](/api/hyrax/functions/toPascalCase), [`toSnakeCase`](/api/hyrax/functions/toSnakeCase), [`toKebabCase`](/api/hyrax/functions/toKebabCase), [`toConstantCase`](/api/hyrax/functions/toConstantCase), [`toTitleCase`](/api/hyrax/functions/toTitleCase), [`splitWords`](/api/hyrax/functions/splitWords), [`slugify`](/api/hyrax/functions/slugify), [`interpolate`](/api/hyrax/functions/interpolate), [`plural`](/api/hyrax/functions/plural), [`truncate`](/api/hyrax/functions/truncate), [`StringBuilder`](/api/hyrax/classes/StringBuilder).

@@ -153,7 +153,8 @@ export abstract class RandomBase {
 
   /**
    * `1` or `-1`, with the same chance: a random direction, or a random sign for a magnitude. It is
-   * `boolean()` underneath, so it uses one draw and is affected by luck, which favours `1`.
+   * `boolean()` underneath, so it uses one draw and is affected by luck: a positive luck favours `1`
+   * and a negative one `-1`.
    *
    * @example
    * ```ts

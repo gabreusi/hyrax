@@ -23,7 +23,8 @@ import { useLatest } from "./internal/useLatest";
  * }
  * ```
  *
- * @param callback - Called with the time the check timer was stopped (ms).
+ * @param callback - Called with the milliseconds since the previous check, which is far more than
+ *   the interval after a suspension.
  * @param options - `threshold` and `interval`, as for `Suspend`.
  * @throws {RangeError} From the effect, when the options are invalid (see `Suspend`).
  */

@@ -1,6 +1,6 @@
 import fc from "fast-check";
 import { describe, expect, expectTypeOf, it } from "vitest";
-import { approach, clamp, inRange, lerp, ratio, remap, snap, wrap } from "./number";
+import { approach, clamp, inRange, lerp, range, ratio, remap, snap, wrap } from "./number";
 
 /** `===` semantics: +0 and -0 are the same number for these functions. */
 const same = (x: number, y: number) => x === y;
@@ -281,6 +281,58 @@ describe("approach", () => {
         (current, target, delta) => {
           const next = approach(current, target, delta);
           expect(Math.abs(target - next)).toBeLessThanOrEqual(Math.abs(target - current));
+        },
+      ),
+    );
+  });
+});
+
+describe("range", () => {
+  it("counts from 0 with one argument, down for a negative end", () => {
+    expect(range(4)).toEqual([0, 1, 2, 3]);
+    expect(range(-3)).toEqual([0, -1, -2]);
+    expect(range(0)).toEqual([]);
+  });
+
+  it("goes from start toward end, end excluded", () => {
+    expect(range(1, 5)).toEqual([1, 2, 3, 4]);
+    expect(range(5, 1)).toEqual([5, 4, 3, 2]);
+    expect(range(3, 3)).toEqual([]);
+  });
+
+  it("follows the direction of the bounds whatever the sign of step", () => {
+    expect(range(5, 0, 2)).toEqual([5, 3, 1]);
+    expect(range(5, 0, -2)).toEqual([5, 3, 1]);
+    expect(range(0, 5, -2)).toEqual([0, 2, 4]);
+  });
+
+  it("does not leak float error", () => {
+    expect(range(0, 1, 0.25)).toEqual([0, 0.25, 0.5, 0.75]);
+    expect(range(0, 0.4, 0.1)).toEqual([0, 0.1, 0.2, 0.3]);
+    expect(range(0, 0.7, 0.1)).toEqual([0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6]);
+    expect(range(0.1, 0.5, 0.2)).toEqual([0.1, 0.3]);
+  });
+
+  it("gives [] for a step of 0 or anything that is not finite", () => {
+    expect(range(0, 10, 0)).toEqual([]);
+    expect(range(0, 10, NaN)).toEqual([]);
+    expect(range(0, Infinity)).toEqual([]);
+    expect(range(NaN)).toEqual([]);
+  });
+
+  it("has the expected length and stays inside the bounds", () => {
+    fc.assert(
+      fc.property(
+        fc.integer({ min: -500, max: 500 }),
+        fc.integer({ min: -500, max: 500 }),
+        fc.integer({ min: 1, max: 50 }),
+        (start, end, step) => {
+          const values = range(start, end, step);
+          expect(values.length).toBe(Math.ceil(Math.abs(end - start) / step));
+          for (const v of values) {
+            expect(v).toBeGreaterThanOrEqual(Math.min(start, end + 1));
+            expect(v).toBeLessThanOrEqual(Math.max(start, end - 1) + 0);
+          }
         },
       ),
     );

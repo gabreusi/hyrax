@@ -1,9 +1,11 @@
+import { intersect } from "./internal/intersect";
+
 // A local no-op, like in listen.ts: importing the core one would tie /dom to the root chunk.
 const noop = () => {};
 
 /**
- * Calls `callback` whenever the size of `element` changes, and once when observing starts (that is
- * how `ResizeObserver` works). Each call gets the `ResizeObserverEntry`, with `contentRect` and the
+ * Calls `callback` whenever the size of `element` changes, and once right after observing starts
+ * when the element already has a size (that is how `ResizeObserver` works). Each call gets the `ResizeObserverEntry`, with `contentRect` and the
  * border and content box sizes.
  *
  * A `null` or `undefined` element (a ref that is not set yet), a server render, or a runtime
@@ -63,15 +65,18 @@ export function onVisible(
   callback: (entry: IntersectionObserverEntry) => void,
   { once = false, ...init }: OnVisibleOptions = {},
 ): () => void {
-  if (!element || typeof IntersectionObserver === "undefined") return noop;
-  const observer = new IntersectionObserver((entries) => {
-    for (const entry of entries) {
-      if (!entry.isIntersecting) continue;
-      if (once) observer.disconnect();
+  let done = false;
+  return intersect(
+    element,
+    (entry, stop) => {
+      // `done`: a batch can hold several entries after `once` already stopped the observer.
+      if (!entry.isIntersecting || done) return;
+      if (once) {
+        done = true;
+        stop();
+      }
       callback(entry);
-      if (once) return;
-    }
-  }, init);
-  observer.observe(element);
-  return () => observer.disconnect();
+    },
+    init,
+  );
 }

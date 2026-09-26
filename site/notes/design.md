@@ -38,7 +38,7 @@ release.
 - **What is frozen for a seed:** the engine (sfc32, seeded by cyrb128 with 12 outputs discarded), the formula of `next`,
   the rejection rule (which bits, how many draws), the luck transformation and its cap, how `fork` derives a seed, the
   `state` format, the formulas of `normal` and `exponential`, the grammar of `roll`, the cumulative order of `weighted`,
-  and the layout of `uuid`, `bytes` and `token`.
+  that `sign` is one `boolean()` draw, and the layout of `uuid`, `bytes` and `token`.
 
 The seeded generator is **not** cryptographic. Use `Random.secure()` for secrets.
 
@@ -54,12 +54,12 @@ that fails the build when it is exceeded:
 | ------------------------------ | ----------- |
 | `clamp`                        | 76 B        |
 | `Random`                       | 3.2 kB      |
-| the whole root entrypoint      | 6.0 kB      |
+| the whole root entrypoint      | 6.5 kB      |
 | `listen` from `/dom`           | 85 B        |
-| the whole of `/dom`            | 1.5 kB      |
+| the whole of `/dom`            | 2.2 kB      |
 | `useForceUpdate` from `/react` | 96 B        |
 | `hx` from `/react`             | 630 B       |
-| the whole of `/react`          | 2.4 kB      |
+| the whole of `/react`          | 3.5 kB      |
 
 React and React DOM are not counted: they are peer dependencies. The `Random` methods live on the class, and the five
 extras (`weighted`, `sample`, `normal`, `exponential` and `roll`) are about 0.9 kB of it.

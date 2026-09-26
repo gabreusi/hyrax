@@ -19,10 +19,14 @@ describe("@gabreusi/hyrax/react", () => {
       "useDebouncedValue",
       "useEventListener",
       "useForceUpdate",
+      "useHotkey",
       "useInterval",
       "useMediaQuery",
+      "useScrollLock",
+      "useSize",
       "useStorage",
       "useSuspend",
+      "useVisible",
     ];
     expect(Object.keys(react).sort()).toEqual(expected.sort());
   });

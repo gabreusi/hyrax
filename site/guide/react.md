@@ -1,6 +1,6 @@
 # React
 
-`@gabreusi/hyrax/react` has four hooks and two components for React 18 and 19. It is a thin layer over
+`@gabreusi/hyrax/react` has hooks and two components for React 18 and 19. It is a thin layer over
 [`@gabreusi/hyrax/dom`](./dom), it renders on the server without a `document`, and the entrypoint starts with
 `"use client"` so that Next.js and other Server Components bundlers know where the client boundary is.
 
@@ -163,6 +163,46 @@ function Clock() {
 
 The callback is read from the latest render. Changing `threshold` or `interval` starts a new detector.
 
+## `useHotkey` and `useScrollLock`
+
+`useHotkey(combo, handler, options?)` is [`onKey`](./dom#onkey) for as long as the component is mounted, with the
+handler read from the latest render. `enabled: false` pauses it, and `target` takes a ref.
+
+```tsx
+import { useState } from "react";
+
+function Palette() {
+  const [open, setOpen] = useState(false);
+  useHotkey("mod+k", () => setOpen((value) => !value));
+  useHotkey("Escape", () => setOpen(false), { enabled: open });
+  useScrollLock(open);
+  return open ? <dialog open>Search…</dialog> : null;
+}
+```
+
+`useScrollLock(active = true)` is [`lockScroll`](./dom#lockscroll) while `active` is true: the page stays locked until
+every component that locked it lets go.
+
+## `useSize` and `useVisible`
+
+`useSize(ref)` returns the size of an element's content box, and `useVisible(ref, options?)` whether it is in the
+viewport. Both are built on the observers of `/dom` and start from a safe value on the server and on the first render:
+`{ width: 0, height: 0 }` and `false`.
+
+```tsx
+import { useRef } from "react";
+
+function Chart() {
+  const ref = useRef<HTMLDivElement>(null);
+  const { width } = useSize(ref);
+  const visible = useVisible(ref, { once: true });
+  return <div ref={ref}>{visible ? `a chart ${width}px wide` : null}</div>;
+}
+```
+
+`useVisible` follows the element in and out; with `once: true` it stays `true` after the first time. The element is
+read when the component mounts, so pass an element held in state when it is swapped for another one.
+
 ## `useForceUpdate`
 
 `useForceUpdate()` returns a function that renders the component again, for when the screen must follow something that is
@@ -254,4 +294,4 @@ function Panel() {
 
 ## Reference
 
-The full signatures, with every option and error, are in the API reference: [`useEventListener`](/api/hyrax/react/functions/useEventListener), [`useClickOutside`](/api/hyrax/react/functions/useClickOutside), [`useInterval`](/api/hyrax/react/functions/useInterval), [`useMediaQuery`](/api/hyrax/react/functions/useMediaQuery), [`useStorage`](/api/hyrax/react/functions/useStorage), [`useDebouncedValue`](/api/hyrax/react/functions/useDebouncedValue), [`useSuspend`](/api/hyrax/react/functions/useSuspend), [`useForceUpdate`](/api/hyrax/react/functions/useForceUpdate), [`Portal`](/api/hyrax/react/functions/Portal), [`hx`](/api/hyrax/react/variables/hx).
+The full signatures, with every option and error, are in the API reference: [`useEventListener`](/api/hyrax/react/functions/useEventListener), [`useClickOutside`](/api/hyrax/react/functions/useClickOutside), [`useInterval`](/api/hyrax/react/functions/useInterval), [`useMediaQuery`](/api/hyrax/react/functions/useMediaQuery), [`useStorage`](/api/hyrax/react/functions/useStorage), [`useDebouncedValue`](/api/hyrax/react/functions/useDebouncedValue), [`useSuspend`](/api/hyrax/react/functions/useSuspend), [`useHotkey`](/api/hyrax/react/functions/useHotkey), [`useScrollLock`](/api/hyrax/react/functions/useScrollLock), [`useSize`](/api/hyrax/react/functions/useSize), [`useVisible`](/api/hyrax/react/functions/useVisible), [`useForceUpdate`](/api/hyrax/react/functions/useForceUpdate), [`Portal`](/api/hyrax/react/functions/Portal), [`hx`](/api/hyrax/react/variables/hx).

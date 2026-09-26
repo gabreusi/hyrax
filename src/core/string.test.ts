@@ -2,6 +2,7 @@ import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import {
   interpolate,
+  plural,
   slugify,
   splitWords,
   toCamelCase,
@@ -253,5 +254,48 @@ describe("interpolate", () => {
 
   it("leaves text that is not a placeholder alone", () => {
     expect(interpolate("{} {a b} {{x}}", { x: 1 })).toBe("{} {a b} {1}");
+  });
+});
+
+describe("plural", () => {
+  const items = { one: "# item", other: "# items" };
+
+  it("picks the English category and writes the count", () => {
+    expect(plural(1, items)).toBe("1 item");
+    expect(plural(0, items)).toBe("0 items");
+    expect(plural(3, items)).toBe("3 items");
+    expect(plural(1000, items)).toBe("1,000 items");
+    expect(plural(1.5, items)).toBe("1.5 items");
+  });
+
+  it("uses the rules and the number format of the locale", () => {
+    expect(plural(0, { one: "# item", other: "# itens" }, "pt-BR")).toBe("0 item");
+    expect(plural(1000, { one: "# item", other: "# itens" }, "pt-BR")).toBe("1.000 itens");
+    const few = { one: "# plik", few: "# pliki", many: "# plików", other: "# pliku" };
+    expect(plural(2, few, "pl")).toBe("2 pliki");
+    expect(plural(5, few, "pl")).toBe("5 plików");
+  });
+
+  it("falls back to other for a category left out", () => {
+    expect(plural(2, { other: "# pliki?" }, "pl")).toBe("2 pliki?");
+    expect(plural(1, { other: "x" })).toBe("x");
+  });
+
+  it("handles ordinals", () => {
+    const ordinal = { one: "#st", two: "#nd", few: "#rd", other: "#th" };
+    expect([1, 2, 3, 4, 11, 22].map((n) => plural(n, ordinal, { type: "ordinal" }))).toEqual([
+      "1st",
+      "2nd",
+      "3rd",
+      "4th",
+      "11th",
+      "22nd",
+    ]);
+  });
+
+  it("has a short form with one and other", () => {
+    expect(plural(1, "# file", "# files")).toBe("1 file");
+    expect(plural(2, "file", "files")).toBe("files");
+    expect(plural(0, "# item", "# itens", "pt-BR")).toBe("0 item");
   });
 });
