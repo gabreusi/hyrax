@@ -106,6 +106,63 @@ The server has no screen to ask, so it renders `fallback`. While hydrating, the 
 to the real value right after, so the server markup and the first client render agree and React does not report a
 mismatch. Pick as `fallback` what most visitors will see, to avoid a flash.
 
+## `useStorage`
+
+`useStorage(key, fallback, storage?)` is `useState` kept in `localStorage` as JSON. It survives a reload, follows
+changes from other tabs, and every component using the same key in the tab shows the same value.
+
+```tsx
+function ThemeToggle() {
+  const [theme, setTheme] = useStorage<"light" | "dark">("theme", "light");
+  return (
+    <button onClick={() => setTheme((current) => (current === "light" ? "dark" : "light"))}>
+      {theme}
+    </button>
+  );
+}
+```
+
+Like `useMediaQuery`, it renders `fallback` on the server and while hydrating, then switches to the stored value, so
+there is no mismatch. `setValue` takes a value or a function of the current one, and `undefined` removes the key. It
+is built on [`readStorage` and `writeStorage`](./dom#readstorage-and-writestorage), so it never throws; when storage is
+blocked, the value simply stays at what could be read.
+
+## `useDebouncedValue`
+
+`useDebouncedValue(value, wait)` returns a copy of `value` that only changes once `value` has stayed the same for
+`wait` milliseconds: the query to search with while the user is still typing.
+
+```tsx
+import { useState } from "react";
+
+function Search() {
+  const [query, setQuery] = useState("");
+  const debouncedQuery = useDebouncedValue(query, 300);
+  // fetch results for `debouncedQuery`...
+  return <input value={query} onChange={(event) => setQuery(event.target.value)} />;
+}
+```
+
+Pass a primitive, or a value that keeps its identity between renders: a new object on every render is a change every
+time.
+
+## `useSuspend`
+
+`useSuspend(callback, options?)` runs a [`Suspend`](./suspend) detector for as long as the component is mounted, and
+calls back when the machine or the tab wakes up: the moment to reconnect a socket or refetch stale data.
+
+```tsx
+import { useState } from "react";
+
+function Clock() {
+  const [now, setNow] = useState(() => Date.now());
+  useSuspend(() => setNow(Date.now()), { threshold: 5000 });
+  return <time>{new Date(now).toLocaleTimeString()}</time>;
+}
+```
+
+The callback is read from the latest render. Changing `threshold` or `interval` starts a new detector.
+
 ## `useForceUpdate`
 
 `useForceUpdate()` returns a function that renders the component again, for when the screen must follow something that is
@@ -197,4 +254,4 @@ function Panel() {
 
 ## Reference
 
-The full signatures, with every option and error, are in the API reference: [`useEventListener`](/api/hyrax/react/functions/useEventListener), [`useClickOutside`](/api/hyrax/react/functions/useClickOutside), [`useInterval`](/api/hyrax/react/functions/useInterval), [`useMediaQuery`](/api/hyrax/react/functions/useMediaQuery), [`useForceUpdate`](/api/hyrax/react/functions/useForceUpdate), [`Portal`](/api/hyrax/react/functions/Portal), [`hx`](/api/hyrax/react/variables/hx).
+The full signatures, with every option and error, are in the API reference: [`useEventListener`](/api/hyrax/react/functions/useEventListener), [`useClickOutside`](/api/hyrax/react/functions/useClickOutside), [`useInterval`](/api/hyrax/react/functions/useInterval), [`useMediaQuery`](/api/hyrax/react/functions/useMediaQuery), [`useStorage`](/api/hyrax/react/functions/useStorage), [`useDebouncedValue`](/api/hyrax/react/functions/useDebouncedValue), [`useSuspend`](/api/hyrax/react/functions/useSuspend), [`useForceUpdate`](/api/hyrax/react/functions/useForceUpdate), [`Portal`](/api/hyrax/react/functions/Portal), [`hx`](/api/hyrax/react/variables/hx).

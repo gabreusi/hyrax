@@ -1,8 +1,8 @@
 # Numbers
 
 Small functions for the arithmetic that shows up in every UI and game: keeping a value in range, blending two values,
-turning a value into a fraction of a range, moving a value from one range to another, wrapping around a range, and
-snapping to a grid.
+turning a value into a fraction of a range, moving a value from one range to another, wrapping around a range,
+snapping to a grid, and stepping toward a goal.
 
 <NumberLab />
 
@@ -122,6 +122,21 @@ snap(2.6); // => 3
 A `step` of `0`, or one that is not finite, leaves the value as it is instead of returning `NaN`. Halfway values round
 up, as with `Math.round`.
 
+## `approach`
+
+`approach(current, target, delta)` moves `current` toward `target` by at most `delta`, and never past it. It is one step
+of an animation or a game loop that must land exactly on its goal, where `current + speed` would overshoot and then
+oscillate.
+
+```ts
+approach(0, 10, 3); // => 3
+approach(9, 10, 3); // => 10
+approach(10, 0, 4); // => 6
+```
+
+The sign of `delta` does not matter. An infinite `delta` arrives at once, and a `delta` of `NaN` does not move instead of
+turning the value into `NaN`.
+
 ## Reference
 
-The full signatures, with every option and error, are in the API reference: [`clamp`](/api/hyrax/functions/clamp), [`lerp`](/api/hyrax/functions/lerp), [`ratio`](/api/hyrax/functions/ratio), [`remap`](/api/hyrax/functions/remap), [`wrap`](/api/hyrax/functions/wrap), [`inRange`](/api/hyrax/functions/inRange), [`snap`](/api/hyrax/functions/snap).
+The full signatures, with every option and error, are in the API reference: [`clamp`](/api/hyrax/functions/clamp), [`lerp`](/api/hyrax/functions/lerp), [`ratio`](/api/hyrax/functions/ratio), [`remap`](/api/hyrax/functions/remap), [`wrap`](/api/hyrax/functions/wrap), [`inRange`](/api/hyrax/functions/inRange), [`snap`](/api/hyrax/functions/snap), [`approach`](/api/hyrax/functions/approach).

@@ -54,12 +54,12 @@ that fails the build when it is exceeded:
 | ------------------------------ | ----------- |
 | `clamp`                        | 76 B        |
 | `Random`                       | 3.2 kB      |
-| the whole root entrypoint      | 5.3 kB      |
+| the whole root entrypoint      | 6.0 kB      |
 | `listen` from `/dom`           | 85 B        |
-| the whole of `/dom`            | 1.3 kB      |
+| the whole of `/dom`            | 1.5 kB      |
 | `useForceUpdate` from `/react` | 96 B        |
 | `hx` from `/react`             | 630 B       |
-| the whole of `/react`          | 1.6 kB      |
+| the whole of `/react`          | 2.4 kB      |
 
 React and React DOM are not counted: they are peer dependencies. The `Random` methods live on the class, and the five
 extras (`weighted`, `sample`, `normal`, `exponential` and `roll`) are about 0.9 kB of it.

@@ -72,13 +72,13 @@ const entrypoints = [
       { label: "Classes", names: ["Random", "StringBuilder", "Suspend"], kind: "classes" },
       {
         label: "Helpers",
-        names: ["coalesce", "attempt", "toNumber", "alias"],
+        names: ["coalesce", "attempt", "debounce", "toNumber", "alias"],
         kind: "functions",
       },
     ],
     prefix: "",
     guide: "/guide/numbers",
-    cost: "5.3 kB",
+    cost: "6.0 kB",
     costNote: "for all of it; clamp alone is 76 B",
   },
   {
@@ -98,7 +98,7 @@ const entrypoints = [
     ],
     prefix: "dom/",
     guide: "/guide/dom",
-    cost: "1.3 kB",
+    cost: "1.5 kB",
     costNote: "for all of it; listen alone is 85 B",
   },
   {
@@ -119,7 +119,7 @@ const entrypoints = [
     ],
     prefix: "react/",
     guide: "/guide/react",
-    cost: "1.6 kB",
+    cost: "2.4 kB",
     costNote: "for all of it; useForceUpdate is 96 B",
   },
 ];

@@ -54,6 +54,44 @@ export function toNumber(value: unknown, fallback = 0): number {
   return Number.isFinite(number) ? number : fallback;
 }
 
+/**
+ * Converts a numeric value to an integer, dropping the fraction (`1.9` gives `1`, `-1.9` gives
+ * `-1`), or returns `fallback` when the value is not numeric or the integer is not exactly
+ * representable (beyond `Number.MAX_SAFE_INTEGER`).
+ *
+ * @example
+ * ```ts
+ * toInteger("42"); // => 42
+ * toInteger("1.9"); // => 1
+ * toInteger("abc"); // => 0
+ * toInteger(1e20); // => 0
+ * ```
+ *
+ * @param value - The value to convert.
+ * @returns The integer, or `0`.
+ */
+export function toInteger(value: unknown): number;
+/**
+ * Converts a numeric value to an integer, or returns `fallback`. Pass `null` to tell an invalid
+ * value apart from a real `0`.
+ *
+ * @example
+ * ```ts
+ * toInteger("7 items", -1); // => -1
+ * toInteger("x", null); // => null
+ * ```
+ *
+ * @param value - The value to convert.
+ * @param fallback - What to return when `value` cannot be converted (any type).
+ * @returns The integer, or `fallback`.
+ */
+export function toInteger<T>(value: unknown, fallback: T): number | T;
+export function toInteger(value: unknown, fallback: unknown = 0): unknown {
+  // `+ 0` turns `-0` into `0`, so `toInteger("-0.5")` does not print as "-0".
+  const integer = Math.trunc(toNumber(value, NaN)) + 0;
+  return Number.isSafeInteger(integer) ? integer : fallback;
+}
+
 const TRUE_WORDS = new Set(["true", "yes", "on", "1"]);
 const FALSE_WORDS = new Set(["false", "no", "off", "0"]);
 

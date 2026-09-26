@@ -213,3 +213,90 @@ export function truncate(
   }
   return kept.trimEnd() + marker;
 }
+
+/**
+ * Turns text into a URL slug: accents are removed (`ã` becomes `a`), the words are lowercased and
+ * joined with `separator`, and everything that is not a letter or a digit goes away. Letters that
+ * are not a base letter plus an accent, such as `ß`, `æ` or `ø`, are kept as they are.
+ *
+ * @example
+ * ```ts
+ * slugify("Ação Rápida!"); // => "acao-rapida"
+ * slugify("  Hello, World 2  "); // => "hello-world-2"
+ * slugify("Crème Brûlée", "_"); // => "creme_brulee"
+ * ```
+ *
+ * @param input - The text to convert.
+ * @param separator - What goes between words (default `"-"`).
+ * @returns The slug.
+ */
+export function slugify(input: string, separator = "-"): string {
+  return splitWords(input.normalize("NFKD").replace(/\p{M}/gu, ""))
+    .map((word) => word.toLowerCase())
+    .join(separator);
+}
+
+/** What {@link interpolate} writes when a placeholder has no value: fixed text, or text made from the key. */
+export type InterpolateFallback = string | ((key: string) => string);
+
+const PLACEHOLDER = /\{\s*([^{}\s]+)\s*\}/g;
+
+/**
+ * Fills the `{placeholders}` of a template. A placeholder is a key of `values`, or a path into it
+ * (`{user.name}`), and with an array the keys are indices (`{0}`). A placeholder whose value is
+ * missing, `null` or `undefined` is left as it is, so a gap shows up instead of `"undefined"`.
+ *
+ * @example
+ * ```ts
+ * interpolate("Hello, {name}!", { name: "Ana" }); // => "Hello, Ana!"
+ * interpolate("{user.name} has {count} items", { user: { name: "Ana" }, count: 3 }); // => "Ana has 3 items"
+ * interpolate("{0} + {1}", [2, 3]); // => "2 + 3"
+ * interpolate("Hello, {name}!", {}); // => "Hello, {name}!"
+ * ```
+ *
+ * @param template - The text with placeholders.
+ * @param values - Where the values come from.
+ * @returns The filled text.
+ */
+export function interpolate(template: string, values: object): string;
+/**
+ * Fills the placeholders, and writes `fallback` for those without a value: fixed text, or the
+ * result of a function that receives the key.
+ *
+ * @example
+ * ```ts
+ * interpolate("Hello, {name}!", {}, "guest"); // => "Hello, guest!"
+ * interpolate("{a} {b}", { a: 1 }, (key) => `<${key}>`); // => "1 <b>"
+ * ```
+ *
+ * @param template - The text with placeholders.
+ * @param values - Where the values come from.
+ * @param fallback - What to write for a placeholder without a value.
+ * @returns The filled text.
+ */
+export function interpolate(
+  template: string,
+  values: object,
+  fallback: InterpolateFallback,
+): string;
+export function interpolate(
+  template: string,
+  values: object,
+  fallback?: InterpolateFallback,
+): string {
+  return template.replace(PLACEHOLDER, (placeholder, key: string) => {
+    let value: unknown = values;
+    for (const part of key.split(".")) {
+      // `hasOwn`: `{constructor}` must not print the function every object inherits.
+      value =
+        value != null && Object.hasOwn(value, part)
+          ? (value as Record<string, unknown>)[part]
+          : undefined;
+    }
+    // An object prints as `[object Object]`, like in a template literal: pass the text you want.
+    // eslint-disable-next-line @typescript-eslint/no-base-to-string
+    if (value != null) return String(value);
+    if (fallback === undefined) return placeholder;
+    return typeof fallback === "function" ? fallback(key) : fallback;
+  });
+}

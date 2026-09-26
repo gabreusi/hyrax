@@ -1,12 +1,4 @@
-/**
- * The store to use: `localStorage` by default in a browser, and none on the server, where a global
- * store (Node has one) would be shared by every request.
- */
-function resolve(storage: Storage | null | undefined): Storage | null {
-  if (storage !== undefined) return storage;
-  // Reading `localStorage` itself throws when storage is blocked (some privacy settings, sandboxed iframes).
-  return typeof window === "undefined" ? null : window.localStorage;
-}
+import { resolveStorage } from "./internal/storage";
 
 /**
  * Reads a JSON value from `localStorage`, or returns `fallback` when it cannot: the key is missing,
@@ -30,7 +22,7 @@ function resolve(storage: Storage | null | undefined): Storage | null {
  */
 export function readStorage<T>(key: string, fallback: T, storage?: Storage | null): T {
   try {
-    const text = resolve(storage)?.getItem(key);
+    const text = resolveStorage(storage)?.getItem(key);
     return text == null ? fallback : (JSON.parse(text) as T);
   } catch {
     return fallback;
@@ -56,7 +48,7 @@ export function readStorage<T>(key: string, fallback: T, storage?: Storage | nul
  */
 export function writeStorage(key: string, value: unknown, storage?: Storage | null): boolean {
   try {
-    const store = resolve(storage);
+    const store = resolveStorage(storage);
     if (!store) return false;
     if (value === undefined) {
       store.removeItem(key);

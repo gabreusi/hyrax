@@ -488,3 +488,13 @@ describe("bytes", () => {
     expect(scripted(words, 8).rng.bytes(4)).toEqual(scripted(words, 0).rng.bytes(4));
   });
 });
+
+describe("sign", () => {
+  it("gives 1 or -1, from one boolean draw", () => {
+    const signs = draws(new Random("sign"), 200, (r) => r.sign());
+    expect(new Set(signs)).toEqual(new Set([1, -1]));
+    expect(draws(new Random("sign"), 50, (r) => r.sign())).toEqual(
+      draws(new Random("sign"), 50, (r) => (r.boolean() ? 1 : -1)),
+    );
+  });
+});

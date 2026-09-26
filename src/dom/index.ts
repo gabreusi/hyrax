@@ -4,9 +4,12 @@
  *
  * @module @gabreusi/hyrax/dom
  */
+export { copyText } from "./copyText";
 export { getCSSVar } from "./getCSSVar";
 export { listen } from "./listen";
 export type { ListenOptions } from "./listen";
+export { observeSize, onVisible } from "./observe";
+export type { OnVisibleOptions } from "./observe";
 export { onClickOutside } from "./onClickOutside";
 export type {
   ClickOutsideOptions,

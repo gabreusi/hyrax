@@ -194,3 +194,13 @@ describe("toggle", () => {
     expect(new StringBuilder().toggle("").build()).toBe("");
   });
 });
+
+describe("has / size", () => {
+  it("checks the final text and counts the parts", () => {
+    const builder = new StringBuilder().append("x", "a-").append("").append("b");
+    expect(builder.has("a-x")).toBe(true);
+    expect(builder.has("x")).toBe(false);
+    expect(builder.size).toBe(2);
+    expect(builder.remove("b").size).toBe(1);
+  });
+});

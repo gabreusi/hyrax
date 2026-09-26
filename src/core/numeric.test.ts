@@ -1,5 +1,5 @@
 import { describe, expect, expectTypeOf, it } from "vitest";
-import { isNumeric, toBoolean, toNumber } from "./numeric";
+import { isNumeric, toBoolean, toInteger, toNumber } from "./numeric";
 import type { Numeric } from "./types";
 
 describe("isNumeric", () => {
@@ -98,5 +98,31 @@ describe("toBoolean", () => {
   it("types the fallback into the result", () => {
     expectTypeOf(toBoolean("x")).toEqualTypeOf<boolean>();
     expectTypeOf(toBoolean("x", null)).toEqualTypeOf<boolean | null>();
+  });
+});
+
+describe("toInteger", () => {
+  it("drops the fraction toward zero", () => {
+    expect(toInteger("42")).toBe(42);
+    expect(toInteger("1.9")).toBe(1);
+    expect(toInteger(-1.9)).toBe(-1);
+    expect(toInteger(7n)).toBe(7);
+  });
+
+  it("never gives -0", () => {
+    expect(Object.is(toInteger("-0.5"), 0)).toBe(true);
+  });
+
+  it("returns the fallback for non-numeric values and unsafe integers", () => {
+    expect(toInteger("abc")).toBe(0);
+    expect(toInteger("7 items", -1)).toBe(-1);
+    expect(toInteger(1e20)).toBe(0);
+    expect(toInteger(2n ** 60n, null)).toBeNull();
+    expect(toInteger(null, null)).toBeNull();
+  });
+
+  it("types the fallback into the result", () => {
+    expectTypeOf(toInteger("1")).toEqualTypeOf<number>();
+    expectTypeOf(toInteger("1", null)).toEqualTypeOf<number | null>();
   });
 });

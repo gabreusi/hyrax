@@ -144,7 +144,7 @@
       "name": "root entrypoint, everything",
       "path": "dist/index.js",
       "import": "*",
-      "limit": "6 kB"
+      "limit": "7 kB"
     },
     {
       "name": "root entrypoint, clamp only",
@@ -183,10 +183,28 @@
       "limit": "350 B"
     },
     {
+      "name": "root entrypoint, interpolate only",
+      "path": "dist/index.js",
+      "import": "{ interpolate }",
+      "limit": "200 B"
+    },
+    {
+      "name": "root entrypoint, debounce only",
+      "path": "dist/index.js",
+      "import": "{ debounce }",
+      "limit": "500 B"
+    },
+    {
+      "name": "root entrypoint, throttle only",
+      "path": "dist/index.js",
+      "import": "{ throttle }",
+      "limit": "600 B"
+    },
+    {
       "name": "dom entrypoint, everything",
       "path": "dist/dom.js",
       "import": "*",
-      "limit": "1.5 kB"
+      "limit": "1.8 kB"
     },
     {
       "name": "dom entrypoint, listen only",
@@ -213,6 +231,12 @@
       "limit": "300 B"
     },
     {
+      "name": "dom entrypoint, observeSize and onVisible",
+      "path": "dist/dom.js",
+      "import": "{ observeSize, onVisible }",
+      "limit": "250 B"
+    },
+    {
       "name": "react entrypoint, everything",
       "path": "dist/react.js",
       "import": "*",
@@ -221,7 +245,7 @@
         "react-dom",
         "react/jsx-runtime"
       ],
-      "limit": "2 kB"
+      "limit": "2.8 kB"
     },
     {
       "name": "react entrypoint, useForceUpdate only",
@@ -277,6 +301,28 @@
         "react/jsx-runtime"
       ],
       "limit": "300 B"
+    },
+    {
+      "name": "react entrypoint, useStorage only",
+      "path": "dist/react.js",
+      "import": "{ useStorage }",
+      "ignore": [
+        "react",
+        "react-dom",
+        "react/jsx-runtime"
+      ],
+      "limit": "650 B"
+    },
+    {
+      "name": "react entrypoint, useSuspend only",
+      "path": "dist/react.js",
+      "import": "{ useSuspend }",
+      "ignore": [
+        "react",
+        "react-dom",
+        "react/jsx-runtime"
+      ],
+      "limit": "750 B"
     },
     {
       "name": "react entrypoint, Portal only",

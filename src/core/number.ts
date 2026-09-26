@@ -224,3 +224,26 @@ export function snap(value: number, step = 1, origin = 0): number {
   const places = Math.min(100, Math.max(decimals(step), decimals(origin)));
   return Number(snapped.toFixed(places));
 }
+
+/**
+ * Moves `current` toward `target` by at most `delta`, without going past it: one step of an
+ * animation or a game loop that must land exactly on its goal. The sign of `delta` does not
+ * matter, an infinite `delta` arrives at once, and a `delta` of `NaN` does not move.
+ *
+ * @example
+ * ```ts
+ * approach(0, 10, 3); // => 3
+ * approach(9, 10, 3); // => 10
+ * approach(10, 0, 4); // => 6
+ * ```
+ *
+ * @param current - Where the value is now.
+ * @param target - Where it is going.
+ * @param delta - The largest step allowed.
+ * @returns The value after one step.
+ */
+export function approach(current: number, target: number, delta: number): number {
+  const step = Math.abs(delta);
+  if (Number.isNaN(step)) return current;
+  return current < target ? Math.min(current + step, target) : Math.max(current - step, target);
+}

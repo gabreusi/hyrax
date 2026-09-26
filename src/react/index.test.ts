@@ -16,10 +16,13 @@ describe("@gabreusi/hyrax/react", () => {
       "hx",
       "Portal",
       "useClickOutside",
+      "useDebouncedValue",
       "useEventListener",
       "useForceUpdate",
       "useInterval",
       "useMediaQuery",
+      "useStorage",
+      "useSuspend",
     ];
     expect(Object.keys(react).sort()).toEqual(expected.sort());
   });

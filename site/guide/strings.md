@@ -40,6 +40,41 @@ silent return.
 splitWords("parseHTTPResponse2xx"); // => ["parse", "HTTP", "Response2xx"]
 ```
 
+## `slugify`
+
+`slugify(text, separator = "-")` makes a URL slug: accents are removed, the words are found by the same tokenizer as the
+case functions, lowercased and joined.
+
+```ts
+slugify("Ação Rápida!"); // => "acao-rapida"
+slugify("Crème Brûlée", "_"); // => "creme_brulee"
+slugify("fooBar 2"); // => "foo-bar-2"
+```
+
+Only accents come off: a letter that is not a base letter plus a mark, such as `ß`, `æ` or `ø`, is kept as it is.
+
+## `interpolate`
+
+`interpolate(template, values, fallback?)` fills `{placeholders}`. A placeholder is a key, a path (`{user.name}`), or,
+with an array, an index.
+
+```ts
+interpolate("Hello, {name}!", { name: "Ana" }); // => "Hello, Ana!"
+interpolate("{user.name} has {count} items", { user: { name: "Ana" }, count: 3 }); // => "Ana has 3 items"
+interpolate("{0} + {1}", [2, 3]); // => "2 + 3"
+```
+
+A placeholder without a value (missing, `null` or `undefined`) is left as it is, so the gap shows instead of the word
+`undefined`. Give a fallback to write something else: a string, or a function of the key.
+
+```ts
+interpolate("Hello, {name}!", {}); // => "Hello, {name}!"
+interpolate("Hello, {name}!", {}, "guest"); // => "Hello, guest!"
+interpolate("{a} {b}", { a: 1 }, (key) => `<${key}>`); // => "1 <b>"
+```
+
+Only the object's own properties are read, so `{constructor}` is not the function every object inherits.
+
 ## `truncate`
 
 `truncate(text, length, ending = "…")` shortens text to at most `length` characters, the ending included. Text that
@@ -146,6 +181,14 @@ new StringBuilder().append("a").toggle("a").toggle("b").build(); // => "b"
 new StringBuilder().append("a").toggle("a", true).build(); // => "a"
 ```
 
+`has(text)` checks for a part the same way, and `size` counts the parts.
+
+```ts
+const classes = new StringBuilder().append("x", "a-").append("b");
+classes.has("a-x"); // => true
+classes.size; // => 2
+```
+
 ## Reference
 
-The full signatures, with every option and error, are in the API reference: [`toCamelCase`](/api/hyrax/functions/toCamelCase), [`toPascalCase`](/api/hyrax/functions/toPascalCase), [`toSnakeCase`](/api/hyrax/functions/toSnakeCase), [`toKebabCase`](/api/hyrax/functions/toKebabCase), [`toConstantCase`](/api/hyrax/functions/toConstantCase), [`toTitleCase`](/api/hyrax/functions/toTitleCase), [`splitWords`](/api/hyrax/functions/splitWords), [`truncate`](/api/hyrax/functions/truncate), [`StringBuilder`](/api/hyrax/classes/StringBuilder).
+The full signatures, with every option and error, are in the API reference: [`toCamelCase`](/api/hyrax/functions/toCamelCase), [`toPascalCase`](/api/hyrax/functions/toPascalCase), [`toSnakeCase`](/api/hyrax/functions/toSnakeCase), [`toKebabCase`](/api/hyrax/functions/toKebabCase), [`toConstantCase`](/api/hyrax/functions/toConstantCase), [`toTitleCase`](/api/hyrax/functions/toTitleCase), [`splitWords`](/api/hyrax/functions/splitWords), [`slugify`](/api/hyrax/functions/slugify), [`interpolate`](/api/hyrax/functions/interpolate), [`truncate`](/api/hyrax/functions/truncate), [`StringBuilder`](/api/hyrax/classes/StringBuilder).
