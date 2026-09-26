@@ -152,6 +152,22 @@ export abstract class RandomBase {
   }
 
   /**
+   * `1` or `-1`, with the same chance: a random direction, or a random sign for a magnitude. It is
+   * `boolean()` underneath, so it uses one draw and is affected by luck, which favours `1`.
+   *
+   * @example
+   * ```ts
+   * const speed = 5;
+   * new Random("x").sign() * speed; // => 5 or -5
+   * ```
+   *
+   * @returns `1` or `-1`.
+   */
+  sign(): 1 | -1 {
+    return this.boolean() ? 1 : -1;
+  }
+
+  /**
    * A random element of an array. Fair: ignores luck.
    *
    * @example

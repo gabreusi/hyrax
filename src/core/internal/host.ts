@@ -2,6 +2,8 @@
 interface Host {
   setInterval?: (handler: () => void, milliseconds: number) => unknown;
   clearInterval?: (handle: unknown) => void;
+  setTimeout?: (handler: () => void, milliseconds: number) => unknown;
+  clearTimeout?: (handle: unknown) => void;
   crypto?: { getRandomValues?: (array: Uint32Array) => Uint32Array };
 }
 

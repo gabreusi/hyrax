@@ -56,6 +56,43 @@ Pass `sessionStorage` (or any `Storage`) as the last argument to use another sto
 global store, not even the one Node has, since it would be shared by every request. The value is parsed, not validated:
 it is typed like the fallback, so check its shape when it may come from an older version of your app.
 
+## `observeSize` and `onVisible`
+
+`observeSize(element, callback, options?)` calls back whenever the size of the element changes, and once when it starts,
+with the `ResizeObserverEntry`. `onVisible(element, callback, options?)` calls back when the element enters the
+viewport; with `once: true` it stops after the first time, which is what lazy loading needs.
+
+```ts
+const panel = document.createElement("div");
+const off = observeSize(panel, (entry) => console.log(entry.contentRect.width));
+
+const image = document.createElement("img");
+onVisible(image, () => (image.src = image.dataset.src ?? ""), { once: true, rootMargin: "200px" });
+
+off();
+```
+
+Both return the function that stops observing, like `listen`. A `null` element (a ref that is not set yet), a server
+render or a runtime without the observer do nothing. Leaving the viewport is not reported by `onVisible`; for that,
+use an `IntersectionObserver` directly.
+
+## `copyText`
+
+`copyText(text)` copies to the clipboard and resolves to whether it worked. It never rejects: without a clipboard, outside
+a secure context (`https` or `localhost`), or when the browser refuses, it resolves to `false`, so the button can say
+"Press Ctrl+C" instead. Browsers usually only allow it from a user action, such as a click.
+
+```ts
+const button = document.createElement("button");
+button.addEventListener("click", () => {
+  void copyText("npm install @gabreusi/hyrax").then((copied) => {
+    button.textContent = copied ? "Copied" : "Press Ctrl+C";
+  });
+});
+```
+
+There is no fallback to the old `document.execCommand("copy")`, which browsers deprecated.
+
 ## `toPixels`
 
 `toPixels(value, element?)` turns a CSS length into a number of pixels, by laying it out in the browser. It understands
@@ -137,4 +174,4 @@ dialog = document.createElement("div");
 
 ## Reference
 
-The full signatures, with every option and error, are in the API reference: [`getCSSVar`](/api/hyrax/dom/functions/getCSSVar), [`toPixels`](/api/hyrax/dom/functions/toPixels), [`listen`](/api/hyrax/dom/functions/listen), [`onClickOutside`](/api/hyrax/dom/functions/onClickOutside), [`setCSSVar`](/api/hyrax/dom/functions/setCSSVar), [`readStorage`](/api/hyrax/dom/functions/readStorage), [`writeStorage`](/api/hyrax/dom/functions/writeStorage).
+The full signatures, with every option and error, are in the API reference: [`getCSSVar`](/api/hyrax/dom/functions/getCSSVar), [`toPixels`](/api/hyrax/dom/functions/toPixels), [`listen`](/api/hyrax/dom/functions/listen), [`onClickOutside`](/api/hyrax/dom/functions/onClickOutside), [`setCSSVar`](/api/hyrax/dom/functions/setCSSVar), [`readStorage`](/api/hyrax/dom/functions/readStorage), [`writeStorage`](/api/hyrax/dom/functions/writeStorage), [`observeSize`](/api/hyrax/dom/functions/observeSize), [`onVisible`](/api/hyrax/dom/functions/onVisible), [`copyText`](/api/hyrax/dom/functions/copyText).

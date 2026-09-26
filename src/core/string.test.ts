@@ -1,6 +1,8 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import {
+  interpolate,
+  slugify,
   splitWords,
   toCamelCase,
   toConstantCase,
@@ -202,5 +204,54 @@ describe("truncate", () => {
         },
       ),
     );
+  });
+});
+
+describe("slugify", () => {
+  it("removes accents and punctuation, lowercases and joins", () => {
+    expect(slugify("Ação Rápida!")).toBe("acao-rapida");
+    expect(slugify("  Hello, World 2  ")).toBe("hello-world-2");
+    expect(slugify("Crème Brûlée", "_")).toBe("creme_brulee");
+    expect(slugify("fooBar")).toBe("foo-bar");
+    expect(slugify("ﬁle №5")).toBe("file-no5");
+    expect(slugify("")).toBe("");
+  });
+
+  it("keeps letters that are not a base letter plus an accent", () => {
+    expect(slugify("Straße")).toBe("straße");
+  });
+});
+
+describe("interpolate", () => {
+  it("fills keys, paths and array indices", () => {
+    expect(interpolate("Hello, {name}!", { name: "Ana" })).toBe("Hello, Ana!");
+    expect(interpolate("{user.name} has {count}", { user: { name: "Ana" }, count: 3 })).toBe(
+      "Ana has 3",
+    );
+    expect(interpolate("{0} + {1}", [2, 3])).toBe("2 + 3");
+    expect(interpolate("{ name }", { name: "spaced" })).toBe("spaced");
+  });
+
+  it("writes falsy values that are not nullish", () => {
+    expect(interpolate("{a}{b}{c}", { a: 0, b: false, c: "" })).toBe("0false");
+  });
+
+  it("leaves a placeholder without a value as it is", () => {
+    expect(interpolate("Hello, {name}!", {})).toBe("Hello, {name}!");
+    expect(interpolate("{a.b.c}", { a: null })).toBe("{a.b.c}");
+    expect(interpolate("{x}", { x: undefined })).toBe("{x}");
+  });
+
+  it("does not read inherited properties", () => {
+    expect(interpolate("{constructor} {toString}", {})).toBe("{constructor} {toString}");
+  });
+
+  it("uses a fallback string or function", () => {
+    expect(interpolate("Hello, {name}!", {}, "guest")).toBe("Hello, guest!");
+    expect(interpolate("{a} {b}", { a: 1 }, (key) => `<${key}>`)).toBe("1 <b>");
+  });
+
+  it("leaves text that is not a placeholder alone", () => {
+    expect(interpolate("{} {a b} {{x}}", { x: 1 })).toBe("{} {a b} {1}");
   });
 });

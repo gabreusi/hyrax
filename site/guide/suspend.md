@@ -31,6 +31,8 @@ off();
 suspend.dispose();
 ```
 
+In React, [`useSuspend`](./react#usesuspend) ties a detector to the life of a component.
+
 ## A limit
 
 It reads the wall clock (`Date.now()`), so changing the system clock by hand can look like a suspension.

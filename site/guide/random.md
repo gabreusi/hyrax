@@ -43,6 +43,7 @@ rng.float(10, 20); // a float in [10, 20), never 20
 rng.int(1, 6); // an integer from 1 to 6, both included
 rng.int(9); // from 0 to 9: one argument starts the range at 0
 rng.boolean(); // true or false
+rng.sign(); // 1 or -1
 rng.from(["a", "b", "c"]); // an element of an array
 rng.from("abc"); // a character of a string
 rng.shuffle([1, 2, 3, 4]); // a shuffled copy

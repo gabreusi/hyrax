@@ -9,7 +9,7 @@ import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { missingFiles, publishProblems, unexpectedFiles } from "./release/checks.mjs";
 
-const BUDGET_KB = 100; // measured: about 82 kB. A jump means something was added on purpose or by mistake.
+const BUDGET_KB = 130; // measured: about 114 kB. A jump means something was added on purpose or by mistake.
 
 const publishing = process.argv.includes("--publish");
 const pkg = JSON.parse(readFileSync("package.json", "utf8"));

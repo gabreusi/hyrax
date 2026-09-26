@@ -112,6 +112,34 @@ export class StringBuilder {
   }
 
   /**
+   * Whether a part equal to `text` is in the builder. Like `remove`, it compares the final text,
+   * prefix included.
+   *
+   * @example
+   * ```ts
+   * new StringBuilder().append("x", "a-").has("a-x"); // => true
+   * ```
+   *
+   * @param text - The final text of the part.
+   * @returns `true` when the part is there.
+   */
+  has(text: string): boolean {
+    return this.#parts.includes(text);
+  }
+
+  /**
+   * How many parts the builder holds.
+   *
+   * @example
+   * ```ts
+   * new StringBuilder().append("a").append("").append("b").size; // => 2
+   * ```
+   */
+  get size(): number {
+    return this.#parts.length;
+  }
+
+  /**
    * Adds `text` when it is missing and removes it when it is there, like `classList.toggle`. With
    * `force`, adds it when `force` is truthy and removes it otherwise. Like `remove`, it compares the
    * final text, and it does not affect the chain of `if`.
@@ -127,7 +155,7 @@ export class StringBuilder {
    * @returns This builder, for chaining.
    */
   toggle(text: string, force?: unknown): this {
-    const present = this.#parts.includes(text);
+    const present = this.has(text);
     const wanted = force === undefined ? !present : Boolean(force);
     if (wanted === present) return this;
     return wanted ? this.append(text) : this.remove(text);

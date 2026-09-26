@@ -1,6 +1,6 @@
 import fc from "fast-check";
 import { describe, expect, expectTypeOf, it } from "vitest";
-import { clamp, inRange, lerp, ratio, remap, snap, wrap } from "./number";
+import { approach, clamp, inRange, lerp, ratio, remap, snap, wrap } from "./number";
 
 /** `===` semantics: +0 and -0 are the same number for these functions. */
 const same = (x: number, y: number) => x === y;
@@ -253,6 +253,36 @@ describe("snap", () => {
         expect(snap(v, s) % s === 0).toBe(true);
         expect(Math.abs(snap(v, s) - v)).toBeLessThanOrEqual(s / 2);
       }),
+    );
+  });
+});
+
+describe("approach", () => {
+  it("steps toward the target without passing it", () => {
+    expect(approach(0, 10, 3)).toBe(3);
+    expect(approach(9, 10, 3)).toBe(10);
+    expect(approach(10, 0, 4)).toBe(6);
+    expect(approach(1, 0, 4)).toBe(0);
+    expect(approach(5, 5, 1)).toBe(5);
+  });
+
+  it("ignores the sign of delta, arrives at once for Infinity and stays for NaN", () => {
+    expect(approach(0, 10, -3)).toBe(3);
+    expect(approach(0, 10, Infinity)).toBe(10);
+    expect(approach(0, 10, NaN)).toBe(0);
+  });
+
+  it("never overshoots", () => {
+    fc.assert(
+      fc.property(
+        fc.double({ noNaN: true, noDefaultInfinity: true }),
+        fc.double({ noNaN: true, noDefaultInfinity: true }),
+        fc.double({ noNaN: true, min: 0 }),
+        (current, target, delta) => {
+          const next = approach(current, target, delta);
+          expect(Math.abs(target - next)).toBeLessThanOrEqual(Math.abs(target - current));
+        },
+      ),
     );
   });
 });

@@ -64,7 +64,7 @@ When `callback` returns a promise, a rejection is caught the same way and you ge
 error; to fall back to a function itself, return it from one: `attempt(load, () => defaultHandler)`. An error thrown by
 the fallback is not caught.
 
-## `isNumeric`, `toNumber` and `toBoolean`
+## `isNumeric`, `toNumber`, `toInteger` and `toBoolean`
 
 `isNumeric(value)` says whether a value is a number you can trust: a finite `number`, a `bigint`, or a string that is a
 decimal number. `Infinity`, empty and blank strings, and hexadecimal are not.
@@ -100,6 +100,48 @@ toBoolean("maybe"); // => false
 toBoolean("maybe", null); // => null
 toBoolean(undefined, true); // => true
 ```
+
+`toInteger(value, fallback = 0)` is `toNumber` that drops the fraction toward zero. An integer too large to be exact
+(beyond `Number.MAX_SAFE_INTEGER`) gives the fallback too, since it would silently be a different number.
+
+```ts
+toInteger("42"); // => 42
+toInteger("-1.9"); // => -1
+toInteger("7 items", -1); // => -1
+toInteger(1e20, null); // => null
+```
+
+## `debounce` and `throttle`
+
+`debounce(fn, wait)` waits until the calls stop for `wait` milliseconds, then runs `fn` once with the latest arguments:
+search as the user types, save after the last keystroke. `throttle(fn, wait)` runs `fn` at most once every `wait`
+while the calls go on: on the first call, once per `wait`, and once more at the end with the latest arguments.
+
+```ts
+const save = debounce((text: string) => console.log("saving", text), 300);
+save("h");
+save("hi"); // only "hi" is saved, 300 ms after this call
+
+const report = throttle((y: number) => console.log(y), 100);
+report(1); // runs now
+report(2);
+report(3); // runs 100 ms after the first call, with 3
+```
+
+Both return the function with three controls: `cancel()` drops the waiting call, `flush()` runs it now, and `pending`
+says whether there is one. An object instead of `wait` gives the options: `leading` and `trailing` choose the edges,
+and `debounce` also takes `maxWait`, so a burst that never stops still runs `fn` that often.
+
+```ts
+const sync = debounce(() => console.log("sync"), { wait: 100, maxWait: 1000 });
+sync();
+sync.pending; // => true
+sync.cancel();
+sync.pending; // => false
+```
+
+A `wait` that is negative, `NaN` or infinite counts as `0` rather than breaking the timer. The timer keeps a Node
+process alive, so a pending save is not lost on exit; call `flush()` in your shutdown code to run it right away.
 
 ## `traceHierarchy`
 
@@ -187,4 +229,4 @@ watch();
 
 ## Reference
 
-The full signatures, with every option and error, are in the API reference: [`coalesce`](/api/hyrax/functions/coalesce), [`fabricate`](/api/hyrax/functions/fabricate), [`attempt`](/api/hyrax/functions/attempt), [`isNumeric`](/api/hyrax/functions/isNumeric), [`toNumber`](/api/hyrax/functions/toNumber), [`toBoolean`](/api/hyrax/functions/toBoolean), [`toArray`](/api/hyrax/functions/toArray), [`traceHierarchy`](/api/hyrax/functions/traceHierarchy), [`alias`](/api/hyrax/functions/alias), [`noop`](/api/hyrax/functions/noop).
+The full signatures, with every option and error, are in the API reference: [`coalesce`](/api/hyrax/functions/coalesce), [`fabricate`](/api/hyrax/functions/fabricate), [`attempt`](/api/hyrax/functions/attempt), [`isNumeric`](/api/hyrax/functions/isNumeric), [`toNumber`](/api/hyrax/functions/toNumber), [`toBoolean`](/api/hyrax/functions/toBoolean), [`toInteger`](/api/hyrax/functions/toInteger), [`debounce`](/api/hyrax/functions/debounce), [`throttle`](/api/hyrax/functions/throttle), [`toArray`](/api/hyrax/functions/toArray), [`traceHierarchy`](/api/hyrax/functions/traceHierarchy), [`alias`](/api/hyrax/functions/alias), [`noop`](/api/hyrax/functions/noop).
