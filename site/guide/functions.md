@@ -143,6 +143,39 @@ sync.pending; // => false
 A `wait` that is negative, `NaN` or infinite counts as `0` rather than breaking the timer. The timer keeps a Node
 process alive, so a pending save is not lost on exit; call `flush()` in your shutdown code to run it right away.
 
+## `retry` and `timeout`
+
+Two helpers for work that can fail or hang, in the same spirit as `attempt`. `retry(fn, options?)` calls `fn` until it
+succeeds: three attempts by default, waiting 100 ms and then 200 ms between them. `fn` gets the attempt number.
+
+```ts
+let calls = 0;
+const flaky = () => (++calls < 3 ? Promise.reject(new Error("busy")) : Promise.resolve("ok"));
+await retry(flaky, { delay: 1 }); // => "ok"
+```
+
+When every attempt fails it rejects with the last error, unless you give a `fallback`, which is then the result. The
+options are `times`, `delay`, `backoff` (the multiplier of the wait), `retryIf` (to give up on errors that will not go
+away, such as a 404) and `signal` (an `AbortSignal` that stops waiting and attempting).
+
+```ts
+const down = () => Promise.reject(new Error("down"));
+await retry(down, { times: 2, delay: 1, fallback: null }); // => null
+```
+
+`timeout(work, ms, fallback?)` waits for a promise, or a function that starts one, for at most `ms` milliseconds.
+Without a fallback it rejects with a `TimeoutError`; with one it resolves to it instead.
+
+```ts
+const never = new Promise<string>(() => {});
+await timeout(never, 10, "cached"); // => "cached"
+await timeout(Promise.resolve("fast"), 1000); // => "fast"
+```
+
+A rejection of the work itself passes through either way. An `ms` that is negative, `NaN` or infinite means no limit.
+The work keeps running after the time runs out, since a promise cannot be cancelled: give it an `AbortSignal` of its
+own if it must stop. Invalid numbers in `retry` fall back too: a `times` below `1` is a single attempt.
+
 ## `traceHierarchy`
 
 `traceHierarchy(node, key)` follows a link (such as `parent` or `manager`) up to the root and returns the whole chain,
@@ -229,4 +262,4 @@ watch();
 
 ## Reference
 
-The full signatures, with every option and error, are in the API reference: [`coalesce`](/api/hyrax/functions/coalesce), [`fabricate`](/api/hyrax/functions/fabricate), [`attempt`](/api/hyrax/functions/attempt), [`isNumeric`](/api/hyrax/functions/isNumeric), [`toNumber`](/api/hyrax/functions/toNumber), [`toBoolean`](/api/hyrax/functions/toBoolean), [`toInteger`](/api/hyrax/functions/toInteger), [`debounce`](/api/hyrax/functions/debounce), [`throttle`](/api/hyrax/functions/throttle), [`toArray`](/api/hyrax/functions/toArray), [`traceHierarchy`](/api/hyrax/functions/traceHierarchy), [`alias`](/api/hyrax/functions/alias), [`noop`](/api/hyrax/functions/noop).
+The full signatures, with every option and error, are in the API reference: [`coalesce`](/api/hyrax/functions/coalesce), [`fabricate`](/api/hyrax/functions/fabricate), [`attempt`](/api/hyrax/functions/attempt), [`isNumeric`](/api/hyrax/functions/isNumeric), [`toNumber`](/api/hyrax/functions/toNumber), [`toBoolean`](/api/hyrax/functions/toBoolean), [`toInteger`](/api/hyrax/functions/toInteger), [`debounce`](/api/hyrax/functions/debounce), [`throttle`](/api/hyrax/functions/throttle), [`retry`](/api/hyrax/functions/retry), [`timeout`](/api/hyrax/functions/timeout), [`toArray`](/api/hyrax/functions/toArray), [`traceHierarchy`](/api/hyrax/functions/traceHierarchy), [`alias`](/api/hyrax/functions/alias), [`noop`](/api/hyrax/functions/noop).

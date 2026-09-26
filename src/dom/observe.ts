@@ -1,3 +1,5 @@
+import { intersect } from "./internal/intersect";
+
 // A local no-op, like in listen.ts: importing the core one would tie /dom to the root chunk.
 const noop = () => {};
 
@@ -63,15 +65,18 @@ export function onVisible(
   callback: (entry: IntersectionObserverEntry) => void,
   { once = false, ...init }: OnVisibleOptions = {},
 ): () => void {
-  if (!element || typeof IntersectionObserver === "undefined") return noop;
-  const observer = new IntersectionObserver((entries) => {
-    for (const entry of entries) {
-      if (!entry.isIntersecting) continue;
-      if (once) observer.disconnect();
+  let done = false;
+  return intersect(
+    element,
+    (entry, stop) => {
+      // `done`: a batch can hold several entries after `once` already stopped the observer.
+      if (!entry.isIntersecting || done) return;
+      if (once) {
+        done = true;
+        stop();
+      }
       callback(entry);
-      if (once) return;
-    }
-  }, init);
-  observer.observe(element);
-  return () => observer.disconnect();
+    },
+    init,
+  );
 }

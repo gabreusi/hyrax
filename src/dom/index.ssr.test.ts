@@ -15,5 +15,7 @@ describe("@gabreusi/hyrax/dom without a DOM (server-side rendering)", () => {
     expect(dom.writeStorage("x", 1)).toBe(false);
     expect(typeof dom.observeSize(null, () => {})).toBe("function");
     expect(typeof dom.onVisible(null, () => {})).toBe("function");
+    expect(typeof dom.onKey(null, "k", () => {})).toBe("function");
+    expect(typeof dom.lockScroll()).toBe("function");
   });
 });

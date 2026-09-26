@@ -144,7 +144,7 @@
       "name": "root entrypoint, everything",
       "path": "dist/index.js",
       "import": "*",
-      "limit": "7 kB"
+      "limit": "7.5 kB"
     },
     {
       "name": "root entrypoint, clamp only",
@@ -201,10 +201,22 @@
       "limit": "600 B"
     },
     {
+      "name": "root entrypoint, retry and timeout",
+      "path": "dist/index.js",
+      "import": "{ retry, timeout }",
+      "limit": "650 B"
+    },
+    {
+      "name": "root entrypoint, plural only",
+      "path": "dist/index.js",
+      "import": "{ plural }",
+      "limit": "250 B"
+    },
+    {
       "name": "dom entrypoint, everything",
       "path": "dist/dom.js",
       "import": "*",
-      "limit": "1.8 kB"
+      "limit": "2.6 kB"
     },
     {
       "name": "dom entrypoint, listen only",
@@ -234,7 +246,19 @@
       "name": "dom entrypoint, observeSize and onVisible",
       "path": "dist/dom.js",
       "import": "{ observeSize, onVisible }",
-      "limit": "250 B"
+      "limit": "300 B"
+    },
+    {
+      "name": "dom entrypoint, onKey only",
+      "path": "dist/dom.js",
+      "import": "{ onKey }",
+      "limit": "800 B"
+    },
+    {
+      "name": "dom entrypoint, lockScroll only",
+      "path": "dist/dom.js",
+      "import": "{ lockScroll }",
+      "limit": "300 B"
     },
     {
       "name": "react entrypoint, everything",
@@ -245,7 +269,7 @@
         "react-dom",
         "react/jsx-runtime"
       ],
-      "limit": "2.8 kB"
+      "limit": "4 kB"
     },
     {
       "name": "react entrypoint, useForceUpdate only",
@@ -323,6 +347,17 @@
         "react/jsx-runtime"
       ],
       "limit": "750 B"
+    },
+    {
+      "name": "react entrypoint, useHotkey only",
+      "path": "dist/react.js",
+      "import": "{ useHotkey }",
+      "ignore": [
+        "react",
+        "react-dom",
+        "react/jsx-runtime"
+      ],
+      "limit": "1.05 kB"
     },
     {
       "name": "react entrypoint, Portal only",

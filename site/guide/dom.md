@@ -76,6 +76,40 @@ Both return the function that stops observing, like `listen`. A `null` element (
 render or a runtime without the observer do nothing. Leaving the viewport is not reported by `onVisible`; for that,
 use an `IntersectionObserver` directly.
 
+## `onKey`
+
+`onKey(target, combo, handler, options?)` calls the handler when a keyboard shortcut is pressed, and returns the
+function that stops listening, like `listen`. A combination is modifiers and a key joined by `+`, in any case, and a
+list matches any of them.
+
+```ts
+const off = onKey(window, "mod+k", () => console.log("open the palette"));
+onKey(document, ["Escape", "mod+."], () => console.log("close"));
+off();
+```
+
+`mod` is ⌘ on Apple devices and Ctrl elsewhere. Modifiers match exactly, so `"k"` does not fire on Ctrl+K. Letters and
+digits are also matched by the physical key, so `"alt+a"` works on a Mac, where Alt+A types `å`. A symbol such as `?`
+does not need `shift+`.
+
+Two defaults make it safe to bind single keys. A combination that types a character (`"/"`, `"k"`) is ignored while the
+user is typing in a field, and a match calls `preventDefault()`, so `mod+s` does not open the browser's save dialog.
+Both can be turned off with `ignoreInputs: false` and `preventDefault: false`.
+
+## `lockScroll`
+
+`lockScroll()` stops the page from scrolling, for a modal or a drawer, and returns the function that lets it scroll
+again. The width of the scrollbar that disappears is added as padding, so the content does not jump sideways.
+
+```ts
+const unlock = lockScroll();
+// ...the dialog is open...
+unlock();
+```
+
+Locks are counted: with two dialogs open, closing one keeps the page locked until the other closes too. It sets
+`overflow: hidden` on `<body>`, which iOS Safari only honours for touch scrolling since version 16.
+
 ## `copyText`
 
 `copyText(text)` copies to the clipboard and resolves to whether it worked. It never rejects: without a clipboard, outside
@@ -174,4 +208,4 @@ dialog = document.createElement("div");
 
 ## Reference
 
-The full signatures, with every option and error, are in the API reference: [`getCSSVar`](/api/hyrax/dom/functions/getCSSVar), [`toPixels`](/api/hyrax/dom/functions/toPixels), [`listen`](/api/hyrax/dom/functions/listen), [`onClickOutside`](/api/hyrax/dom/functions/onClickOutside), [`setCSSVar`](/api/hyrax/dom/functions/setCSSVar), [`readStorage`](/api/hyrax/dom/functions/readStorage), [`writeStorage`](/api/hyrax/dom/functions/writeStorage), [`observeSize`](/api/hyrax/dom/functions/observeSize), [`onVisible`](/api/hyrax/dom/functions/onVisible), [`copyText`](/api/hyrax/dom/functions/copyText).
+The full signatures, with every option and error, are in the API reference: [`getCSSVar`](/api/hyrax/dom/functions/getCSSVar), [`toPixels`](/api/hyrax/dom/functions/toPixels), [`listen`](/api/hyrax/dom/functions/listen), [`onClickOutside`](/api/hyrax/dom/functions/onClickOutside), [`setCSSVar`](/api/hyrax/dom/functions/setCSSVar), [`readStorage`](/api/hyrax/dom/functions/readStorage), [`writeStorage`](/api/hyrax/dom/functions/writeStorage), [`observeSize`](/api/hyrax/dom/functions/observeSize), [`onVisible`](/api/hyrax/dom/functions/onVisible), [`copyText`](/api/hyrax/dom/functions/copyText), [`onKey`](/api/hyrax/dom/functions/onKey), [`lockScroll`](/api/hyrax/dom/functions/lockScroll).

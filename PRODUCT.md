@@ -29,7 +29,7 @@ and trusts the examples.
   notation, and a separate cryptographic mode.
 - Three entrypoints split by where code can run: universal core, `/dom` (browser, safe to import on the server),
   `/react` (a thin layer over `/dom`). Not a React library.
-- Every export has a size budget that fails the build (for example `clamp` about 76 B, all of `/dom` about 1.5 kB).
+- Every export has a size budget that fails the build (for example `clamp` about 76 B, all of `/dom` about 2.2 kB).
 
 ## Operating Context
 
@@ -41,11 +41,11 @@ stay green.
 
 ## Capabilities and Constraints
 
-- Entrypoints: `@gabreusi/hyrax` (clamp, lerp, ratio, remap, wrap, inRange, snap, approach, case functions, splitWords, slugify,
-  interpolate, truncate, StringBuilder, Random, random, Suspend, coalesce, attempt, fabricate, isNumeric, toNumber, toInteger, toBoolean, debounce, throttle,
+- Entrypoints: `@gabreusi/hyrax` (clamp, lerp, ratio, remap, wrap, inRange, snap, approach, range, case functions, splitWords, slugify,
+  interpolate, plural, truncate, StringBuilder, Random, random, Suspend, coalesce, attempt, fabricate, isNumeric, toNumber, toInteger, toBoolean, debounce, throttle, retry, timeout,
   toArray, traceHierarchy, alias, noop, types), `@gabreusi/hyrax/dom` (getCSSVar, setCSSVar, readStorage,
-  writeStorage, observeSize, onVisible, copyText, toPixels, listen, onClickOutside), `@gabreusi/hyrax/react` (useEventListener, useClickOutside,
-  useInterval, useMediaQuery, useStorage, useDebouncedValue, useSuspend, useForceUpdate, hx, Portal).
+  writeStorage, observeSize, onVisible, copyText, onKey, lockScroll, toPixels, listen, onClickOutside), `@gabreusi/hyrax/react` (useEventListener, useClickOutside,
+  useInterval, useMediaQuery, useStorage, useDebouncedValue, useSuspend, useHotkey, useScrollLock, useSize, useVisible, useForceUpdate, hx, Portal).
 - Runtimes: Node 20+, current browsers (ES2022), Deno, Bun; React 18 and 19 as optional peers.
 - Status: 1.0.0-rc.0, not yet published to npm. The docs must say so until the first release.
 - Documentation language: English. Owner's chat language is Brazilian Portuguese.

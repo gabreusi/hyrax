@@ -78,7 +78,7 @@ const entrypoints = [
     ],
     prefix: "",
     guide: "/guide/numbers",
-    cost: "6.0 kB",
+    cost: "6.5 kB",
     costNote: "for all of it; clamp alone is 76 B",
   },
   {
@@ -98,7 +98,7 @@ const entrypoints = [
     ],
     prefix: "dom/",
     guide: "/guide/dom",
-    cost: "1.5 kB",
+    cost: "2.2 kB",
     costNote: "for all of it; listen alone is 85 B",
   },
   {
@@ -119,7 +119,7 @@ const entrypoints = [
     ],
     prefix: "react/",
     guide: "/guide/react",
-    cost: "2.4 kB",
+    cost: "3.5 kB",
     costNote: "for all of it; useForceUpdate is 96 B",
   },
 ];

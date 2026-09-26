@@ -300,3 +300,75 @@ export function interpolate(
     return typeof fallback === "function" ? fallback(key) : fallback;
   });
 }
+
+/** The plural categories of `Intl.PluralRules`: which of them a language uses depends on the language. */
+export type PluralCategory = "zero" | "one" | "two" | "few" | "many" | "other";
+
+/** The text for each plural category. `other` is required: a category you leave out falls back to it. */
+export type PluralForms = Partial<Record<PluralCategory, string>> & { other: string };
+
+/** Options for {@link plural}. */
+export interface PluralOptions {
+  /** The language, which decides both the category and how `#` is written. Defaults to `"en"`. */
+  locale?: string;
+  /** `"cardinal"` (1 item, 2 items) or `"ordinal"` (1st, 2nd). Defaults to `"cardinal"`. */
+  type?: "cardinal" | "ordinal";
+}
+
+/**
+ * Picks the text that matches `count` in a language, with `Intl.PluralRules`, and writes the count
+ * in place of `#`. Each language has its own categories (English has `one` and `other`, Arabic
+ * has six), and a category missing from `forms` falls back to `other`, so it never returns
+ * `undefined`. The count is formatted for the language (`1,000` in English).
+ *
+ * The locale defaults to `"en"` and not to the machine's, so the server and the browser agree.
+ *
+ * @example
+ * ```ts
+ * plural(1, { one: "# item", other: "# items" }); // => "1 item"
+ * plural(3, { one: "# item", other: "# items" }); // => "3 items"
+ * plural(0, { zero: "nothing", one: "# item", other: "# items" }); // => "0 items"
+ * plural(1000, { one: "# item", other: "# itens" }, "pt-BR"); // => "1.000 itens"
+ * plural(2, { one: "#st", two: "#nd", few: "#rd", other: "#th" }, { type: "ordinal" }); // => "2nd"
+ * ```
+ *
+ * @param count - The number the text is about.
+ * @param forms - The text for each category; `#` is replaced by the count.
+ * @param locale - The language, or `{ locale, type }` for ordinals.
+ * @returns The matching text.
+ */
+export function plural(count: number, forms: PluralForms, locale?: string | PluralOptions): string;
+/**
+ * The short form, for a language with just "one" and "other": `one` when the language puts
+ * `count` in the `one` category, and `other` otherwise.
+ *
+ * @example
+ * ```ts
+ * plural(1, "# file", "# files"); // => "1 file"
+ * plural(2, "file", "files"); // => "files"
+ * ```
+ *
+ * @param count - The number the text is about.
+ * @param one - The singular text.
+ * @param other - The plural text.
+ * @param locale - The language (default `"en"`).
+ * @returns The matching text.
+ */
+export function plural(count: number, one: string, other: string, locale?: string): string;
+export function plural(
+  count: number,
+  forms: PluralForms | string,
+  third?: string | PluralOptions,
+  fourth?: string,
+): string {
+  const short = typeof forms === "string";
+  const table: PluralForms = short ? { one: forms, other: third as string } : forms;
+  const options: PluralOptions = short
+    ? { locale: fourth }
+    : typeof third === "string"
+      ? { locale: third }
+      : (third ?? {});
+  const { locale = "en", type = "cardinal" } = options;
+  const text = table[new Intl.PluralRules(locale, { type }).select(count)] ?? table.other;
+  return text.replaceAll("#", new Intl.NumberFormat(locale).format(count));
+}

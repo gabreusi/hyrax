@@ -2,7 +2,8 @@
 
 Small functions for the arithmetic that shows up in every UI and game: keeping a value in range, blending two values,
 turning a value into a fraction of a range, moving a value from one range to another, wrapping around a range,
-snapping to a grid, and stepping toward a goal.
+snapping to a grid, stepping toward a goal, and
+listing the numbers of a range.
 
 <NumberLab />
 
@@ -137,6 +138,28 @@ approach(10, 0, 4); // => 6
 The sign of `delta` does not matter. An infinite `delta` arrives at once, and a `delta` of `NaN` does not move instead of
 turning the value into `NaN`.
 
+## `range`
+
+`range` lists numbers, with the end excluded. It has the same shapes as `clamp`: one argument is the end and the start
+is `0`, which gives the indices of a list.
+
+```ts
+range(4); // => [0, 1, 2, 3]
+range(1, 5); // => [1, 2, 3, 4]
+range(0, 1, 0.25); // => [0, 0.25, 0.5, 0.75]
+range(0, 0.4, 0.1); // => [0, 0.1, 0.2, 0.3]
+```
+
+It counts down when the end is below the start, whatever the sign of the step, so a wrong sign can never loop forever.
+The values are rounded like `snap`'s, so steps of `0.1` do not drift. A step of `0`, or a bound that is not finite,
+gives `[]`.
+
+```ts
+range(5, 0, 2); // => [5, 3, 1]
+range(5, 0, -2); // => [5, 3, 1]
+range(0, 10, 0); // => []
+```
+
 ## Reference
 
-The full signatures, with every option and error, are in the API reference: [`clamp`](/api/hyrax/functions/clamp), [`lerp`](/api/hyrax/functions/lerp), [`ratio`](/api/hyrax/functions/ratio), [`remap`](/api/hyrax/functions/remap), [`wrap`](/api/hyrax/functions/wrap), [`inRange`](/api/hyrax/functions/inRange), [`snap`](/api/hyrax/functions/snap), [`approach`](/api/hyrax/functions/approach).
+The full signatures, with every option and error, are in the API reference: [`clamp`](/api/hyrax/functions/clamp), [`lerp`](/api/hyrax/functions/lerp), [`ratio`](/api/hyrax/functions/ratio), [`remap`](/api/hyrax/functions/remap), [`wrap`](/api/hyrax/functions/wrap), [`inRange`](/api/hyrax/functions/inRange), [`snap`](/api/hyrax/functions/snap), [`approach`](/api/hyrax/functions/approach), [`range`](/api/hyrax/functions/range).
