@@ -49,8 +49,8 @@ function milliseconds(value: number | undefined): number {
  * the latest call: search as the user types, save after the last keystroke, lay out after the last
  * resize. A `wait` that is negative, `NaN` or infinite counts as `0`, instead of breaking the timer.
  *
- * The returned function has `cancel()`, `flush()` and `pending`. Errors thrown by `fn` surface from
- * the timer. Its timer keeps a Node process alive, so a pending save is not lost on exit.
+ * The returned function has `cancel()`, `flush()` and `pending`. An error thrown by `fn` surfaces
+ * where `fn` ran: from the timer, or from the call itself for a `leading` run or a `flush()`. Its timer keeps a Node process alive, so a pending save is not lost on exit.
  *
  * @example
  * ```ts

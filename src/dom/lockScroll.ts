@@ -14,7 +14,8 @@ let restore: (() => void) | undefined;
  * closes too. Each returned function releases its own lock once, and calling it again does nothing.
  * Without a document (server-side rendering) it does nothing.
  *
- * It sets `overflow: hidden` on `<body>`. iOS Safari before 16 ignored that for touch scrolling.
+ * It sets `overflow: hidden` on `<body>`, which older versions of iOS Safari ignored for touch
+ * scrolling.
  *
  * @example
  * ```ts

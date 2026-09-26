@@ -38,7 +38,7 @@ release.
 - **What is frozen for a seed:** the engine (sfc32, seeded by cyrb128 with 12 outputs discarded), the formula of `next`,
   the rejection rule (which bits, how many draws), the luck transformation and its cap, how `fork` derives a seed, the
   `state` format, the formulas of `normal` and `exponential`, the grammar of `roll`, the cumulative order of `weighted`,
-  and the layout of `uuid`, `bytes` and `token`.
+  that `sign` is one `boolean()` draw, and the layout of `uuid`, `bytes` and `token`.
 
 The seeded generator is **not** cryptographic. Use `Random.secure()` for secrets.
 

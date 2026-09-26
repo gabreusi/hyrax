@@ -1,6 +1,6 @@
 # React
 
-`@gabreusi/hyrax/react` has four hooks and two components for React 18 and 19. It is a thin layer over
+`@gabreusi/hyrax/react` has hooks and two components for React 18 and 19. It is a thin layer over
 [`@gabreusi/hyrax/dom`](./dom), it renders on the server without a `document`, and the entrypoint starts with
 `"use client"` so that Next.js and other Server Components bundlers know where the client boundary is.
 

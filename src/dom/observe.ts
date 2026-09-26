@@ -4,8 +4,8 @@ import { intersect } from "./internal/intersect";
 const noop = () => {};
 
 /**
- * Calls `callback` whenever the size of `element` changes, and once when observing starts (that is
- * how `ResizeObserver` works). Each call gets the `ResizeObserverEntry`, with `contentRect` and the
+ * Calls `callback` whenever the size of `element` changes, and once right after observing starts
+ * when the element already has a size (that is how `ResizeObserver` works). Each call gets the `ResizeObserverEntry`, with `contentRect` and the
  * border and content box sizes.
  *
  * A `null` or `undefined` element (a ref that is not set yet), a server render, or a runtime

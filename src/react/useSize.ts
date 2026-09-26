@@ -5,7 +5,9 @@ import type { MaybeRef } from "./internal/refs";
 
 /** A width and a height, in CSS pixels. */
 export interface ElementSize {
+  /** The width of the content box, in CSS pixels. */
   width: number;
+  /** The height of the content box, in CSS pixels. */
   height: number;
 }
 

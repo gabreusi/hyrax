@@ -174,7 +174,8 @@ await timeout(Promise.resolve("fast"), 1000); // => "fast"
 
 A rejection of the work itself passes through either way. An `ms` that is negative, `NaN` or infinite means no limit.
 The work keeps running after the time runs out, since a promise cannot be cancelled: give it an `AbortSignal` of its
-own if it must stop. Invalid numbers in `retry` fall back too: a `times` below `1` is a single attempt.
+own if it must stop. Invalid numbers in `retry` fall back too: a `times`, `delay` or `backoff` that is negative, `NaN` or infinite uses its
+default, and a `times` below `1` makes a single attempt.
 
 ## `traceHierarchy`
 

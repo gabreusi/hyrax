@@ -1,7 +1,7 @@
 # DOM utilities
 
-`@gabreusi/hyrax/dom` has a handful of functions for the browser, with no framework: use them from Vue, Svelte, React or plain
-JavaScript. The React hooks are a thin layer over `listen` and `onClickOutside`.
+`@gabreusi/hyrax/dom` has functions for the browser, with no framework: use them from Vue, Svelte, React or plain
+JavaScript. The React hooks are a thin layer over them.
 
 Every function is **safe to import and call where there is no `document`** (a server render, a worker, Node): it returns
 its fallback, or does nothing, and never throws. Nothing runs when you import the module.
@@ -58,8 +58,8 @@ it is typed like the fallback, so check its shape when it may come from an older
 
 ## `observeSize` and `onVisible`
 
-`observeSize(element, callback, options?)` calls back whenever the size of the element changes, and once when it starts,
-with the `ResizeObserverEntry`. `onVisible(element, callback, options?)` calls back when the element enters the
+`observeSize(element, callback, options?)` calls back with the `ResizeObserverEntry` whenever the size of the element
+changes, and once right after it starts when the element already has a size. `onVisible(element, callback, options?)` calls back when the element enters the
 viewport; with `once: true` it stops after the first time, which is what lazy loading needs.
 
 ```ts
@@ -108,7 +108,7 @@ unlock();
 ```
 
 Locks are counted: with two dialogs open, closing one keeps the page locked until the other closes too. It sets
-`overflow: hidden` on `<body>`, which iOS Safari only honours for touch scrolling since version 16.
+`overflow: hidden` on `<body>`, which older versions of iOS Safari ignored for touch scrolling.
 
 ## `copyText`
 

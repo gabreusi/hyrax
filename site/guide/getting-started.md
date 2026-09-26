@@ -22,11 +22,11 @@ needs.
 
 Hyrax has three entrypoints, split by where the code can run:
 
-| Import                  | Runs in                    | Contents                                                             |
-| ----------------------- | -------------------------- | -------------------------------------------------------------------- |
-| `@gabreusi/hyrax`       | Anywhere                   | Numbers, strings, `Random`, `StringBuilder`, `Suspend` and friends   |
-| `@gabreusi/hyrax/dom`   | Browsers                   | `getCSSVar`, `toPixels`, `listen`, `onClickOutside`                  |
-| `@gabreusi/hyrax/react` | React 18 and 19 (optional) | `useEventListener`, `useClickOutside`, `useInterval`, `hx`, `Portal` |
+| Import                  | Runs in                    | Contents                                                           |
+| ----------------------- | -------------------------- | ------------------------------------------------------------------ |
+| `@gabreusi/hyrax`       | Anywhere                   | Numbers, strings, `Random`, `StringBuilder`, `Suspend` and friends |
+| `@gabreusi/hyrax/dom`   | Browsers                   | `listen`, `onKey`, `onClickOutside`, `readStorage`, `toPixels`...  |
+| `@gabreusi/hyrax/react` | React 18 and 19 (optional) | `useEventListener`, `useStorage`, `useHotkey`, `hx`, `Portal`...   |
 
 The React entrypoint is built on the DOM one, and the DOM one is plain JavaScript: if you use Vue, Svelte or no
 framework at all, take the functions from `@gabreusi/hyrax/dom` and skip the hooks.

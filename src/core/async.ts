@@ -5,9 +5,13 @@ import { host } from "./internal/host";
  * the DOM types. Any `AbortSignal` fits.
  */
 export interface AbortSignalLike {
+  /** Whether the signal has aborted. */
   readonly aborted: boolean;
+  /** Why it aborted: what `retry` rejects with when there is no fallback. */
   readonly reason?: unknown;
+  /** Called when the signal aborts, to stop waiting between attempts. */
   addEventListener(type: "abort", listener: () => void, options?: { once?: boolean }): void;
+  /** Removes that listener once the wait is over. */
   removeEventListener(type: "abort", listener: () => void): void;
 }
 
@@ -58,8 +62,9 @@ function wait(ms: number, signal: AbortSignalLike | undefined): Promise<void> {
  * attempts in total by default. For the call that fails once in a while, a flaky network or a busy
  * server. `fn` receives the attempt number, starting at `1`, and may return a value or a promise.
  *
- * When every attempt fails, the promise rejects with the last error. A `times` below `1` or that is
- * not a number counts as a single attempt, and an invalid `delay` or `backoff` as none.
+ * When every attempt fails, the promise rejects with the last error. A `times`, `delay` or `backoff`
+ * that is negative, `NaN` or infinite falls back to its default, and a `times` below `1` makes a
+ * single attempt.
  *
  * @example
  * ```ts
