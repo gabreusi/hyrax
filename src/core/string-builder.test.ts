@@ -157,3 +157,40 @@ describe("types", () => {
     expectTypeOf(builder.build()).toEqualTypeOf<string>();
   });
 });
+
+describe("append with a record", () => {
+  it("adds the keys with a truthy value, in order, with the prefix", () => {
+    const built = new StringBuilder()
+      .append("btn")
+      .append({ active: true, disabled: false, large: 1, empty: "" }, "btn--")
+      .build();
+    expect(built).toBe("btn btn--active btn--large");
+  });
+
+  it("respects unique and does not touch the if chain", () => {
+    const builder = new StringBuilder({ unique: true }).append("a");
+    expect(builder.append({ a: true, b: true }).build()).toBe("a b");
+    expect(builder.if(false, "x").append({ y: true }).else("z").build()).toBe("a b y z");
+  });
+});
+
+describe("toggle", () => {
+  it("adds a missing part and removes a present one", () => {
+    expect(new StringBuilder().append("a").toggle("a").toggle("b").build()).toBe("b");
+  });
+
+  it("follows force when it is given", () => {
+    expect(new StringBuilder().append("a").toggle("a", true).build()).toBe("a");
+    expect(new StringBuilder().toggle("a", 1).build()).toBe("a");
+    expect(new StringBuilder().append("a").toggle("a", false).build()).toBe("");
+    expect(new StringBuilder().toggle("a", null).build()).toBe("");
+  });
+
+  it("compares the final text and removes every copy", () => {
+    expect(new StringBuilder().append("x", "a-").append("x", "a-").toggle("a-x").build()).toBe("");
+  });
+
+  it("ignores an empty part", () => {
+    expect(new StringBuilder().toggle("").build()).toBe("");
+  });
+});

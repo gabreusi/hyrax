@@ -97,3 +97,119 @@ export function toKebabCase(input: string): string {
     .map((word) => word.toLowerCase())
     .join("-");
 }
+
+/**
+ * Converts a string to `CONSTANT_CASE`.
+ *
+ * @example
+ * ```ts
+ * toConstantCase("maxValue"); // => "MAX_VALUE"
+ * toConstantCase("api-key 2"); // => "API_KEY_2"
+ * ```
+ *
+ * @param input - The string to convert.
+ * @returns The `CONSTANT_CASE` string.
+ */
+export function toConstantCase(input: string): string {
+  return splitWords(input)
+    .map((word) => word.toUpperCase())
+    .join("_");
+}
+
+/**
+ * Converts a string to `Title Case`: every word capitalized, separated by a space. Every word
+ * counts, short ones such as "of" included, since which words stay lowercase depends on the
+ * language and the style guide.
+ *
+ * @example
+ * ```ts
+ * toTitleCase("hello_world"); // => "Hello World"
+ * toTitleCase("XMLHttpRequest"); // => "Xml Http Request"
+ * ```
+ *
+ * @param input - The string to convert.
+ * @returns The `Title Case` string.
+ */
+export function toTitleCase(input: string): string {
+  return splitWords(input).map(capitalize).join(" ");
+}
+
+/** Options for {@link truncate}. */
+export interface TruncateOptions {
+  /** The maximum length of the result, `ending` included, in characters as a reader counts them. */
+  length: number;
+  /** What marks the cut. Defaults to `"…"`. */
+  ending?: string;
+  /** Cut at the end of a word instead of inside one, when the kept text has a space. Defaults to `false`. */
+  words?: boolean;
+}
+
+/** Splits text into what a reader sees as characters, so an emoji or an accent is never cut in half. */
+function graphemes(text: string): string[] {
+  if (typeof Intl === "object" && typeof Intl.Segmenter === "function") {
+    return Array.from(new Intl.Segmenter().segment(text), ({ segment }) => segment);
+  }
+  return Array.from(text);
+}
+
+/**
+ * Shortens `text` to at most `length` characters, `ending` included. Text that already fits comes
+ * back as it is. Characters are counted as a reader sees them, so an emoji or a letter with an
+ * accent is never cut in half, and spaces left before the ending are dropped. When `length` is too
+ * short to hold the ending, the text is cut without it, and a `length` below `1` (or `NaN`) gives an
+ * empty string.
+ *
+ * @example
+ * ```ts
+ * truncate("Hello, world", 8); // => "Hello,…"
+ * truncate("Hello, world", 8, "..."); // => "Hello..."
+ * truncate("Hi", 8); // => "Hi"
+ * ```
+ *
+ * @param text - The text to shorten.
+ * @param length - The maximum length of the result.
+ * @param ending - What marks the cut (default `"…"`).
+ * @returns The text, shortened when needed.
+ */
+export function truncate(text: string, length: number, ending?: string): string;
+/**
+ * Shortens `text` with options: with `words: true` the cut moves back to the end of the last whole
+ * word, when there is one.
+ *
+ * @example
+ * ```ts
+ * truncate("The quick brown fox", { length: 13, words: true }); // => "The quick…"
+ * truncate("Supercalifragilistic", { length: 6, words: true }); // => "Super…"
+ * ```
+ *
+ * @param text - The text to shorten.
+ * @param options - `length`, `ending` and `words`.
+ * @returns The text, shortened when needed.
+ */
+export function truncate(text: string, options: TruncateOptions): string;
+export function truncate(
+  text: string,
+  lengthOrOptions: number | TruncateOptions,
+  ending = "…",
+): string {
+  const {
+    length: limit,
+    ending: end = ending,
+    words = false,
+  } = typeof lengthOrOptions === "number" ? { length: lengthOrOptions } : lengthOrOptions;
+  const length = Math.floor(limit);
+  if (!(length > 0)) return "";
+
+  const characters = graphemes(text);
+  if (characters.length <= length) return text;
+
+  const marker = graphemes(end).length < length ? end : "";
+  let kept = characters.slice(0, length - graphemes(marker).length).join("");
+  if (words) {
+    // Only when the cut fell inside a word, and there is an earlier word to fall back to.
+    const next = characters[length - graphemes(marker).length] ?? "";
+    const space = kept.search(/\s\S*$/u);
+    if (/\S/u.test(next) && space > 0) kept = kept.slice(0, space);
+  }
+  return kept.trimEnd() + marker;
+}

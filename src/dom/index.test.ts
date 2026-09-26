@@ -12,6 +12,15 @@ describe("@gabreusi/hyrax/dom", () => {
 
   it("exposes exactly the intended public API", () => {
     // Adding or removing an export is an API decision: update this list on purpose.
-    expect(Object.keys(dom).sort()).toEqual(["getCSSVar", "listen", "onClickOutside", "toPixels"]);
+    const expected = [
+      "getCSSVar",
+      "listen",
+      "onClickOutside",
+      "readStorage",
+      "setCSSVar",
+      "toPixels",
+      "writeStorage",
+    ];
+    expect(Object.keys(dom).sort()).toEqual(expected.sort());
   });
 });

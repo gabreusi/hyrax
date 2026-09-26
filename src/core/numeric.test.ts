@@ -1,5 +1,5 @@
 import { describe, expect, expectTypeOf, it } from "vitest";
-import { isNumeric, toNumber } from "./numeric";
+import { isNumeric, toBoolean, toNumber } from "./numeric";
 import type { Numeric } from "./types";
 
 describe("isNumeric", () => {
@@ -65,5 +65,38 @@ describe("toNumber", () => {
   it("accepts a custom fallback", () => {
     expect(toNumber("abc", -1)).toBe(-1);
     expect(toNumber(null, NaN)).toBeNaN();
+  });
+});
+
+describe("toBoolean", () => {
+  it("passes booleans through", () => {
+    expect(toBoolean(true)).toBe(true);
+    expect(toBoolean(false, null)).toBe(false);
+  });
+
+  it("reads the usual words in any case, with whitespace", () => {
+    for (const word of ["true", "YES", " on ", "1", "True"])
+      expect(toBoolean(word, null)).toBe(true);
+    for (const word of ["false", "No", "OFF\n", "0"]) expect(toBoolean(word, null)).toBe(false);
+  });
+
+  it("reads 1 and 0 as numbers and bigints", () => {
+    expect(toBoolean(1, null)).toBe(true);
+    expect(toBoolean(0, null)).toBe(false);
+    expect(toBoolean(1n, null)).toBe(true);
+    expect(toBoolean(0n, null)).toBe(false);
+    expect(toBoolean(-0, null)).toBe(false);
+  });
+
+  it("returns the fallback for anything else", () => {
+    for (const value of ["maybe", "", "2", 2, NaN, null, undefined, {}, [], "truthy"]) {
+      expect(toBoolean(value)).toBe(false);
+      expect(toBoolean(value, "x")).toBe("x");
+    }
+  });
+
+  it("types the fallback into the result", () => {
+    expectTypeOf(toBoolean("x")).toEqualTypeOf<boolean>();
+    expectTypeOf(toBoolean("x", null)).toEqualTypeOf<boolean | null>();
   });
 });

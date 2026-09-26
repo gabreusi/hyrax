@@ -14,4 +14,5 @@ export { useEventListener } from "./useEventListener";
 export { useForceUpdate } from "./useForceUpdate";
 export { useInterval } from "./useInterval";
 export type { UseIntervalOptions, UseIntervalResult } from "./useInterval";
+export { useMediaQuery } from "./useMediaQuery";
 export type { MaybeRef, RefLike } from "./internal/refs";

@@ -29,7 +29,7 @@ and trusts the examples.
   notation, and a separate cryptographic mode.
 - Three entrypoints split by where code can run: universal core, `/dom` (browser, safe to import on the server),
   `/react` (a thin layer over `/dom`). Not a React library.
-- Every export has a size budget that fails the build (for example `clamp` about 76 B, all of `/dom` about 1.1 kB).
+- Every export has a size budget that fails the build (for example `clamp` about 76 B, all of `/dom` about 1.3 kB).
 
 ## Operating Context
 
@@ -41,10 +41,11 @@ stay green.
 
 ## Capabilities and Constraints
 
-- Entrypoints: `@gabreusi/hyrax` (clamp, lerp, ratio, remap, case functions, splitWords, StringBuilder, Random, random,
-  Suspend, coalesce, fabricate, isNumeric, toNumber, traceHierarchy, alias, noop, types), `@gabreusi/hyrax/dom`
-  (getCSSVar, toPixels, listen, onClickOutside), `@gabreusi/hyrax/react` (useEventListener, useClickOutside,
-  useInterval, useForceUpdate, hx, Portal).
+- Entrypoints: `@gabreusi/hyrax` (clamp, lerp, ratio, remap, wrap, inRange, snap, case functions, splitWords,
+  truncate, StringBuilder, Random, random, Suspend, coalesce, attempt, fabricate, isNumeric, toNumber, toBoolean,
+  toArray, traceHierarchy, alias, noop, types), `@gabreusi/hyrax/dom` (getCSSVar, setCSSVar, readStorage,
+  writeStorage, toPixels, listen, onClickOutside), `@gabreusi/hyrax/react` (useEventListener, useClickOutside,
+  useInterval, useMediaQuery, useForceUpdate, hx, Portal).
 - Runtimes: Node 20+, current browsers (ES2022), Deno, Bun; React 18 and 19 as optional peers.
 - Status: 1.0.0-rc.0, not yet published to npm. The docs must say so until the first release.
 - Documentation language: English. Owner's chat language is Brazilian Portuguese.

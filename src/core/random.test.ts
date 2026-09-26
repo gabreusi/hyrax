@@ -131,6 +131,16 @@ describe("float", () => {
 });
 
 describe("int", () => {
+  it("starts the range at 0 with one argument, with the same draws as int(0, max)", () => {
+    expect(draws(new Random("one"), 50, (r) => r.int(6))).toEqual(
+      draws(new Random("one"), 50, (r) => r.int(0, 6)),
+    );
+    expect(draws(new Random("neg"), 50, (r) => r.int(-3))).toEqual(
+      draws(new Random("neg"), 50, (r) => r.int(-3, 0)),
+    );
+    expect(new Random("zero").int(0)).toBe(0);
+  });
+
   it("is inclusive on both ends", () => {
     const rng = new Random("ends");
     const seen = new Set(draws(rng, 500, (r) => r.int(1, 3)));

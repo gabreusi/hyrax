@@ -53,3 +53,58 @@ export function toNumber(value: unknown, fallback = 0): number {
   const number = Number(value);
   return Number.isFinite(number) ? number : fallback;
 }
+
+const TRUE_WORDS = new Set(["true", "yes", "on", "1"]);
+const FALSE_WORDS = new Set(["false", "no", "off", "0"]);
+
+/**
+ * Reads a boolean out of a value that came from text: an environment variable, a query string, a
+ * `data-*` attribute. Booleans pass through, `1` and `0` (number or bigint) count, and so do the
+ * strings `true`/`false`, `yes`/`no`, `on`/`off` and `1`/`0`, in any case and with surrounding
+ * whitespace. Anything else is `false`.
+ *
+ * @example
+ * ```ts
+ * toBoolean("true"); // => true
+ * toBoolean(" YES "); // => true
+ * toBoolean("off"); // => false
+ * toBoolean(1); // => true
+ * toBoolean("maybe"); // => false
+ * ```
+ *
+ * @param value - The value to read.
+ * @returns The boolean, or `false` when `value` is not one.
+ */
+export function toBoolean(value: unknown): boolean;
+/**
+ * Reads a boolean out of a value, or returns `fallback` when it is not one. Pass `null` to tell a
+ * missing or invalid value apart from an explicit `false`.
+ *
+ * @example
+ * ```ts
+ * toBoolean("maybe", true); // => true
+ * toBoolean(undefined, null); // => null
+ * toBoolean("no", null); // => false
+ * ```
+ *
+ * @param value - The value to read.
+ * @param fallback - What to return when `value` is not a boolean (any type).
+ * @returns The boolean, or `fallback`.
+ */
+export function toBoolean<T>(value: unknown, fallback: T): boolean | T;
+export function toBoolean(value: unknown, fallback: unknown = false): unknown {
+  switch (typeof value) {
+    case "boolean":
+      return value;
+    case "number":
+    case "bigint":
+      // `==` so that `1n` and `0n` count too.
+      return value == 1 ? true : value == 0 ? false : fallback;
+    case "string": {
+      const word = value.trim().toLowerCase();
+      return TRUE_WORDS.has(word) ? true : FALSE_WORDS.has(word) ? false : fallback;
+    }
+    default:
+      return fallback;
+  }
+}

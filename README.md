@@ -35,7 +35,7 @@ const classes = new StringBuilder().append("btn").if(true, "btn--primary").build
 | Import                  | Runs in                   | Contents                                                      |
 | ----------------------- | ------------------------- | ------------------------------------------------------------- |
 | `@gabreusi/hyrax`       | Anywhere                  | Numbers, strings, `Random`, `StringBuilder`, `Suspend`        |
-| `@gabreusi/hyrax/dom`   | Browsers                  | `getCSSVar`, `toPixels`, `listen`, `onClickOutside`           |
+| `@gabreusi/hyrax/dom`   | Browsers                  | `listen`, `onClickOutside`, `setCSSVar`, `readStorage`...     |
 | `@gabreusi/hyrax/react` | React 18+ (optional peer) | `useEventListener`, `useClickOutside`, `useInterval`, `hx`... |
 
 ## Documentation

@@ -91,6 +91,21 @@ update, not on the same line. There is no `delay: null`: to pause, call `stop()`
 In StrictMode, during development, React runs every effect twice on mount, so `immediate` together with `autoStart`
 calls the handler twice then.
 
+## `useMediaQuery`
+
+`useMediaQuery(query, fallback = false)` returns whether a media query matches, and renders again when that changes.
+
+```tsx
+function Layout() {
+  const isWide = useMediaQuery("(min-width: 768px)", true);
+  return <main>{isWide ? "sidebar" : "tabs"}</main>;
+}
+```
+
+The server has no screen to ask, so it renders `fallback`. While hydrating, the hook returns `fallback` too and switches
+to the real value right after, so the server markup and the first client render agree and React does not report a
+mismatch. Pick as `fallback` what most visitors will see, to avoid a flash.
+
 ## `useForceUpdate`
 
 `useForceUpdate()` returns a function that renders the component again, for when the screen must follow something that is
@@ -182,4 +197,4 @@ function Panel() {
 
 ## Reference
 
-The full signatures, with every option and error, are in the API reference: [`useEventListener`](/api/hyrax/react/functions/useEventListener), [`useClickOutside`](/api/hyrax/react/functions/useClickOutside), [`useInterval`](/api/hyrax/react/functions/useInterval), [`useForceUpdate`](/api/hyrax/react/functions/useForceUpdate), [`Portal`](/api/hyrax/react/functions/Portal), [`hx`](/api/hyrax/react/variables/hx).
+The full signatures, with every option and error, are in the API reference: [`useEventListener`](/api/hyrax/react/functions/useEventListener), [`useClickOutside`](/api/hyrax/react/functions/useClickOutside), [`useInterval`](/api/hyrax/react/functions/useInterval), [`useMediaQuery`](/api/hyrax/react/functions/useMediaQuery), [`useForceUpdate`](/api/hyrax/react/functions/useForceUpdate), [`Portal`](/api/hyrax/react/functions/Portal), [`hx`](/api/hyrax/react/variables/hx).

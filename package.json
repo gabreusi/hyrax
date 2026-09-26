@@ -171,6 +171,18 @@
       "limit": "700 B"
     },
     {
+      "name": "root entrypoint, attempt only",
+      "path": "dist/index.js",
+      "import": "{ attempt }",
+      "limit": "200 B"
+    },
+    {
+      "name": "root entrypoint, truncate only",
+      "path": "dist/index.js",
+      "import": "{ truncate }",
+      "limit": "350 B"
+    },
+    {
       "name": "dom entrypoint, everything",
       "path": "dist/dom.js",
       "import": "*",
@@ -187,6 +199,18 @@
       "path": "dist/dom.js",
       "import": "{ toPixels }",
       "limit": "900 B"
+    },
+    {
+      "name": "dom entrypoint, setCSSVar only",
+      "path": "dist/dom.js",
+      "import": "{ setCSSVar }",
+      "limit": "250 B"
+    },
+    {
+      "name": "dom entrypoint, readStorage and writeStorage",
+      "path": "dist/dom.js",
+      "import": "{ readStorage, writeStorage }",
+      "limit": "300 B"
     },
     {
       "name": "react entrypoint, everything",
@@ -242,6 +266,17 @@
         "react/jsx-runtime"
       ],
       "limit": "400 B"
+    },
+    {
+      "name": "react entrypoint, useMediaQuery only",
+      "path": "dist/react.js",
+      "import": "{ useMediaQuery }",
+      "ignore": [
+        "react",
+        "react-dom",
+        "react/jsx-runtime"
+      ],
+      "limit": "300 B"
     },
     {
       "name": "react entrypoint, Portal only",

@@ -41,3 +41,16 @@ export type AnyString<T extends string = ""> = T | (string & Record<never, never
  * ```
  */
 export type Numeric = number | bigint | `${number}`;
+
+/**
+ * A single `T` or a list of them, for parameters that take either. {@link toArray} turns it into
+ * an array.
+ *
+ * @example
+ * ```ts
+ * function tag(names: Arrayable<string>) {}
+ * tag("a");
+ * tag(["a", "b"]);
+ * ```
+ */
+export type Arrayable<T> = T | readonly T[];

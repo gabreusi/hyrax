@@ -58,7 +58,33 @@ export class StringBuilder {
    * @param prefix - Text put in front of `text` (default: none).
    * @returns This builder, for chaining.
    */
-  append(text: string, prefix = ""): this {
+  append(text: string, prefix?: string): this;
+  /**
+   * Adds every key of `parts` whose value is truthy, in the order of the object: the shape of a
+   * class map. Keys with a falsy value are skipped, and the chain of `if` is not affected.
+   *
+   * @example
+   * ```ts
+   * const isActive = true;
+   * const isDisabled = false;
+   * new StringBuilder()
+   *   .append("btn")
+   *   .append({ active: isActive, disabled: isDisabled }, "btn--")
+   *   .build(); // => "btn btn--active"
+   * ```
+   *
+   * @param parts - Maps each part to a condition; truthy means it is added.
+   * @param prefix - Text put in front of every part (default: none).
+   * @returns This builder, for chaining.
+   */
+  append(parts: Readonly<Record<string, unknown>>, prefix?: string): this;
+  append(text: string | Readonly<Record<string, unknown>>, prefix = ""): this {
+    if (typeof text === "object") {
+      for (const [part, condition] of Object.entries(text)) {
+        if (condition) this.append(part, prefix);
+      }
+      return this;
+    }
     if (!text) return this;
     const part = prefix + text;
     if (this.#unique && this.#seen.has(part)) return this;
@@ -83,6 +109,28 @@ export class StringBuilder {
     this.#parts = this.#parts.filter((part) => part !== text);
     this.#seen.delete(text);
     return this;
+  }
+
+  /**
+   * Adds `text` when it is missing and removes it when it is there, like `classList.toggle`. With
+   * `force`, adds it when `force` is truthy and removes it otherwise. Like `remove`, it compares the
+   * final text, and it does not affect the chain of `if`.
+   *
+   * @example
+   * ```ts
+   * new StringBuilder().append("a").toggle("a").toggle("b").build(); // => "b"
+   * new StringBuilder().append("a").toggle("a", true).build(); // => "a"
+   * ```
+   *
+   * @param text - The final text of the part.
+   * @param force - When given, whether the part must end up present.
+   * @returns This builder, for chaining.
+   */
+  toggle(text: string, force?: unknown): this {
+    const present = this.#parts.includes(text);
+    const wanted = force === undefined ? !present : Boolean(force);
+    if (wanted === present) return this;
+    return wanted ? this.append(text) : this.remove(text);
   }
 
   /**

@@ -42,7 +42,29 @@ fabricate(context, function (this: typeof context) {
 }); // => 10
 ```
 
-## `isNumeric` and `toNumber`
+## `attempt`
+
+`attempt(callback, fallback?)` is `try`/`catch` as an expression, the way `fabricate` is a block as one. It returns what
+`callback` returns, or the fallback when it throws: `undefined` when you give none, a value, or the result of a function
+that receives the error.
+
+```ts
+const saved = '{"theme":"dark"}';
+attempt(() => JSON.parse(saved)); // => { theme: "dark" }
+attempt(() => JSON.parse("{oops")); // => undefined
+attempt(() => JSON.parse("{oops"), {}); // => {}
+attempt(
+  () => JSON.parse("{oops"),
+  (error) => (error instanceof SyntaxError ? "bad json" : "other"),
+); // => "bad json"
+```
+
+When `callback` returns a promise, a rejection is caught the same way and you get a promise back, so
+`await attempt(() => fetch(url), null)` never rejects. A function passed as the fallback is always called with the
+error; to fall back to a function itself, return it from one: `attempt(load, () => defaultHandler)`. An error thrown by
+the fallback is not caught.
+
+## `isNumeric`, `toNumber` and `toBoolean`
 
 `isNumeric(value)` says whether a value is a number you can trust: a finite `number`, a `bigint`, or a string that is a
 decimal number. `Infinity`, empty and blank strings, and hexadecimal are not.
@@ -64,6 +86,19 @@ toNumber("12"); // => 12
 toNumber("abc"); // => 0
 toNumber("abc", -1); // => -1
 toNumber(null, 7); // => 7
+```
+
+`toBoolean(value, fallback = false)` does the same for values that came from text: environment variables, query
+strings, `data-*` attributes. It reads `true`/`false`, `yes`/`no`, `on`/`off` and `1`/`0`, in any case and with
+surrounding spaces. Pass `null` as the fallback to tell a missing or invalid value apart from an explicit `false`.
+
+```ts
+toBoolean("true"); // => true
+toBoolean(" YES "); // => true
+toBoolean("off"); // => false
+toBoolean("maybe"); // => false
+toBoolean("maybe", null); // => null
+toBoolean(undefined, true); // => true
 ```
 
 ## `traceHierarchy`
@@ -112,6 +147,21 @@ Object.keys(aliased); // => ["name", "age"]
 Write the alias lists `as const` so that TypeScript knows their names. An alias used for two keys, or equal to another
 real property, throws when the wrapper is created.
 
+## `toArray`
+
+`toArray(value)` turns "one or many" into a list, for a function that accepts a single value or an array of them. The
+[`Arrayable<T>`](#types) type describes such a parameter. `null` and `undefined` give an empty array, and the result is
+always a new array.
+
+```ts
+function tag(names: Arrayable<string>) {
+  return toArray(names).join(",");
+}
+tag("a"); // => "a"
+tag(["a", "b"]); // => "a,b"
+toArray(null); // => []
+```
+
 ## `noop`
 
 A function that does nothing, for a default callback:
@@ -125,15 +175,16 @@ watch();
 
 ## Types
 
-| Type          | Means                                         |
-| ------------- | --------------------------------------------- |
-| `Nullable<T>` | `T \| null`                                   |
-| `Maybe<T>`    | `T \| null \| undefined`                      |
-| `Numeric`     | `number \| bigint \| \`${number}\``           |
-| `AnyString`   | any string, while keeping literal suggestions |
+| Type           | Means                                         |
+| -------------- | --------------------------------------------- |
+| `Nullable<T>`  | `T \| null`                                   |
+| `Maybe<T>`     | `T \| null \| undefined`                      |
+| `Numeric`      | `number \| bigint \| \`${number}\``           |
+| `AnyString`    | any string, while keeping literal suggestions |
+| `Arrayable<T>` | `T \| readonly T[]`                           |
 
 `AnyString<"small" | "large">` offers `"small"` and `"large"` in your editor and still accepts any other string.
 
 ## Reference
 
-The full signatures, with every option and error, are in the API reference: [`coalesce`](/api/hyrax/functions/coalesce), [`fabricate`](/api/hyrax/functions/fabricate), [`isNumeric`](/api/hyrax/functions/isNumeric), [`toNumber`](/api/hyrax/functions/toNumber), [`traceHierarchy`](/api/hyrax/functions/traceHierarchy), [`alias`](/api/hyrax/functions/alias), [`noop`](/api/hyrax/functions/noop).
+The full signatures, with every option and error, are in the API reference: [`coalesce`](/api/hyrax/functions/coalesce), [`fabricate`](/api/hyrax/functions/fabricate), [`attempt`](/api/hyrax/functions/attempt), [`isNumeric`](/api/hyrax/functions/isNumeric), [`toNumber`](/api/hyrax/functions/toNumber), [`toBoolean`](/api/hyrax/functions/toBoolean), [`toArray`](/api/hyrax/functions/toArray), [`traceHierarchy`](/api/hyrax/functions/traceHierarchy), [`alias`](/api/hyrax/functions/alias), [`noop`](/api/hyrax/functions/noop).
