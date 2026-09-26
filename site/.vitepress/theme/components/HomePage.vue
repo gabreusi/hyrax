@@ -67,18 +67,18 @@ const entrypoints = [
     about:
       "Pure functions and three small classes. No DOM and no React in its types; the compiler enforces it.",
     groups: [
-      { label: "Numbers", names: ["clamp", "lerp", "ratio", "remap"], kind: "functions" },
-      { label: "Strings", names: ["toCamelCase", "toKebabCase", "splitWords"], kind: "functions" },
+      { label: "Numbers", names: ["clamp", "lerp", "wrap", "snap"], kind: "functions" },
+      { label: "Strings", names: ["toCamelCase", "toKebabCase", "truncate"], kind: "functions" },
       { label: "Classes", names: ["Random", "StringBuilder", "Suspend"], kind: "classes" },
       {
         label: "Helpers",
-        names: ["coalesce", "fabricate", "toNumber", "alias"],
+        names: ["coalesce", "attempt", "toNumber", "alias"],
         kind: "functions",
       },
     ],
     prefix: "",
     guide: "/guide/numbers",
-    cost: "4.6 kB",
+    cost: "5.3 kB",
     costNote: "for all of it; clamp alone is 76 B",
   },
   {
@@ -92,13 +92,13 @@ const entrypoints = [
     groups: [
       {
         label: "Functions",
-        names: ["listen", "onClickOutside", "toPixels", "getCSSVar"],
+        names: ["listen", "onClickOutside", "toPixels", "getCSSVar", "setCSSVar", "readStorage"],
         kind: "functions",
       },
     ],
     prefix: "dom/",
     guide: "/guide/dom",
-    cost: "1.1 kB",
+    cost: "1.3 kB",
     costNote: "for all of it; listen alone is 85 B",
   },
   {
@@ -111,7 +111,7 @@ const entrypoints = [
     groups: [
       {
         label: "Hooks",
-        names: ["useEventListener", "useClickOutside", "useInterval", "useForceUpdate"],
+        names: ["useEventListener", "useClickOutside", "useInterval", "useMediaQuery"],
         kind: "functions",
       },
       { label: "Components", names: ["Portal"], kind: "functions" },
@@ -119,7 +119,7 @@ const entrypoints = [
     ],
     prefix: "react/",
     guide: "/guide/react",
-    cost: "1.5 kB",
+    cost: "1.6 kB",
     costNote: "for all of it; useForceUpdate is 96 B",
   },
 ];

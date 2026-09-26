@@ -92,8 +92,8 @@ toPixels(null);
 secure.state();
 // @ts-expect-error a seeded generator has no token: a reproducible token would be a trap
 new Random("seed").token();
-// @ts-expect-error int needs both bounds
-new Random("seed").int(1);
+// @ts-expect-error int needs at least one bound
+new Random("seed").int();
 // @ts-expect-error clamp only accepts numbers
 clamp("1", 0, 2);
 // @ts-expect-error unknown alias

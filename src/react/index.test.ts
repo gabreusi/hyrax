@@ -19,6 +19,7 @@ describe("@gabreusi/hyrax/react", () => {
       "useEventListener",
       "useForceUpdate",
       "useInterval",
+      "useMediaQuery",
     ];
     expect(Object.keys(react).sort()).toEqual(expected.sort());
   });

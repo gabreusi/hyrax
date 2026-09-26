@@ -1,6 +1,6 @@
 import fc from "fast-check";
 import { describe, expect, expectTypeOf, it } from "vitest";
-import { clamp, lerp, ratio, remap } from "./number";
+import { clamp, inRange, lerp, ratio, remap, snap, wrap } from "./number";
 
 /** `===` semantics: +0 and -0 are the same number for these functions. */
 const same = (x: number, y: number) => x === y;
@@ -145,6 +145,113 @@ describe("remap", () => {
         fc.pre(a !== b);
         expect(same(remap(a, [a, b], [c, d]), c)).toBe(true);
         expect(same(remap(b, [a, b], [c, d]), d)).toBe(true);
+      }),
+    );
+  });
+});
+
+describe("wrap", () => {
+  it("wraps past either end of the range", () => {
+    expect(wrap(12, 0, 10)).toBe(2);
+    expect(wrap(-1, 0, 5)).toBe(4);
+    expect(wrap(10, 0, 10)).toBe(0);
+    expect(wrap(0, 0, 10)).toBe(0);
+    expect(wrap(-25, 0, 10)).toBe(5);
+  });
+
+  it("starts the range at 0 when only one bound is given", () => {
+    expect(wrap(370, 360)).toBe(10);
+    expect(wrap(-1, 3)).toBe(2);
+    expect(wrap(-4, -3)).toBe(-1);
+  });
+
+  it("accepts the bounds in either order", () => {
+    expect(wrap(5, 10, 0)).toBe(5);
+    expect(wrap(12, 10, 0)).toBe(2);
+  });
+
+  it("returns min for an empty range and NaN for a value that is not finite", () => {
+    expect(wrap(7, 3, 3)).toBe(3);
+    expect(wrap(7, 0)).toBe(0);
+    expect(wrap(Infinity, 0, 10)).toBeNaN();
+    expect(wrap(NaN, 0, 10)).toBeNaN();
+  });
+
+  it("always lands in [min, max)", () => {
+    fc.assert(
+      fc.property(
+        fc.double({ noNaN: true, noDefaultInfinity: true, min: -1e9, max: 1e9 }),
+        fc.double({ noNaN: true, noDefaultInfinity: true, min: -1e6, max: 1e6 }),
+        fc.double({ noNaN: true, noDefaultInfinity: true, min: -1e6, max: 1e6 }),
+        (value, a, b) => {
+          fc.pre(a !== b);
+          const result = wrap(value, a, b);
+          expect(result).toBeGreaterThanOrEqual(Math.min(a, b));
+          expect(result).toBeLessThan(Math.max(a, b));
+        },
+      ),
+    );
+  });
+});
+
+describe("inRange", () => {
+  it("includes min and excludes max", () => {
+    expect(inRange(0, 0, 10)).toBe(true);
+    expect(inRange(5, 0, 10)).toBe(true);
+    expect(inRange(10, 0, 10)).toBe(false);
+    expect(inRange(-1, 0, 10)).toBe(false);
+  });
+
+  it("starts the range at 0 when only one bound is given", () => {
+    expect(inRange(2, 3)).toBe(true);
+    expect(inRange(3, 3)).toBe(false);
+    expect(inRange(-1, 3)).toBe(false);
+    expect(inRange(-2, -3)).toBe(true);
+  });
+
+  it("accepts the bounds in either order and never contains NaN", () => {
+    expect(inRange(5, 10, 0)).toBe(true);
+    expect(inRange(NaN, 0, 10)).toBe(false);
+    expect(inRange(3, 3, 3)).toBe(false);
+  });
+});
+
+describe("snap", () => {
+  it("rounds to the nearest multiple of step", () => {
+    expect(snap(7, 5)).toBe(5);
+    expect(snap(8, 5)).toBe(10);
+    expect(snap(7.5, 5)).toBe(10);
+    expect(snap(-7, 5)).toBe(-5);
+    expect(snap(2.4)).toBe(2);
+  });
+
+  it("does not leak float error", () => {
+    expect(snap(0.1 + 0.2, 0.1)).toBe(0.3);
+    expect(snap(0.7, 0.1)).toBe(0.7);
+    expect(snap(1.23456, 1e-3)).toBe(1.235);
+    expect(snap(0.35, 0.05, 0.01)).toBe(0.36);
+  });
+
+  it("goes through origin", () => {
+    expect(snap(12, 5, 1)).toBe(11);
+    expect(snap(14, 5, 1)).toBe(16);
+  });
+
+  it("leaves the value as is for a step of 0 or one that is not finite", () => {
+    expect(snap(3.3, 0)).toBe(3.3);
+    expect(snap(3.3, NaN)).toBe(3.3);
+    expect(snap(3.3, Infinity)).toBe(3.3);
+  });
+
+  it("treats a negative step like a positive one", () => {
+    expect(snap(8, -5)).toBe(10);
+  });
+
+  it("returns a multiple of step", () => {
+    fc.assert(
+      fc.property(fc.integer({ min: -1e6, max: 1e6 }), fc.integer({ min: 1, max: 100 }), (v, s) => {
+        expect(snap(v, s) % s === 0).toBe(true);
+        expect(Math.abs(snap(v, s) - v)).toBeLessThanOrEqual(s / 2);
       }),
     );
   });

@@ -101,7 +101,23 @@ export abstract class RandomBase {
    * @returns The random integer.
    * @throws {RangeError} When the range holds no integer, is not finite or is wider than 2^53.
    */
-  int(min: number, max: number): number {
+  int(min: number, max: number): number;
+  /**
+   * An integer between `0` and `max`, **both included**: `int(6)` is `int(0, 6)`, and gives the same
+   * result for the same seed. A negative `max` counts down from `0`.
+   *
+   * @example
+   * ```ts
+   * new Random("x").int(9); // => 0, 1, ... or 9
+   * ```
+   *
+   * @param max - The other bound; the range starts at `0`.
+   * @returns The random integer.
+   * @throws {RangeError} When the range holds no integer, is not finite or is wider than 2^53.
+   */
+  int(max: number): number;
+  int(min: number, max?: number): number {
+    if (max === undefined) [min, max] = [0, min];
     const low = Math.ceil(Math.min(min, max));
     const high = Math.floor(Math.max(min, max));
     if (!Number.isFinite(low) || !Number.isFinite(high) || low > high) {

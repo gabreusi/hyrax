@@ -13,4 +13,7 @@ export type {
   ClickOutsideTarget,
   ClickOutsideTargets,
 } from "./onClickOutside";
+export { setCSSVar } from "./setCSSVar";
+export type { CSSVarTarget, CSSVarValue } from "./setCSSVar";
+export { readStorage, writeStorage } from "./storage";
 export { toPixels } from "./toPixels";

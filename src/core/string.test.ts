@@ -1,6 +1,15 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
-import { splitWords, toCamelCase, toKebabCase, toPascalCase, toSnakeCase } from "./string";
+import {
+  splitWords,
+  toCamelCase,
+  toConstantCase,
+  toKebabCase,
+  toPascalCase,
+  toSnakeCase,
+  toTitleCase,
+  truncate,
+} from "./string";
 
 describe("splitWords", () => {
   it("splits on anything that is not a letter, mark or digit", () => {
@@ -127,6 +136,71 @@ describe("case conversions (properties)", () => {
       fc.property(anything, (input) => {
         expect(toSnakeCase(input).split("_").join("-")).toBe(toKebabCase(input));
       }),
+    );
+  });
+});
+
+describe("toConstantCase", () => {
+  it("uppercases the words and joins them with underscores", () => {
+    expect(toConstantCase("maxValue")).toBe("MAX_VALUE");
+    expect(toConstantCase("api-key 2")).toBe("API_KEY_2");
+    expect(toConstantCase("")).toBe("");
+  });
+});
+
+describe("toTitleCase", () => {
+  it("capitalizes every word and joins them with spaces", () => {
+    expect(toTitleCase("hello_world")).toBe("Hello World");
+    expect(toTitleCase("XMLHttpRequest")).toBe("Xml Http Request");
+    expect(toTitleCase("ação rápida")).toBe("Ação Rápida");
+    expect(toTitleCase("")).toBe("");
+  });
+});
+
+describe("truncate", () => {
+  it("returns text that fits as it is", () => {
+    expect(truncate("Hi", 8)).toBe("Hi");
+    expect(truncate("Hello, w", 8)).toBe("Hello, w");
+  });
+
+  it("cuts to length with the ending included", () => {
+    expect(truncate("Hello, world", 8)).toBe("Hello,…");
+    expect(truncate("Hello, world", 8, "...")).toBe("Hello...");
+    expect(truncate("Hello, world", 8, "")).toBe("Hello, w");
+  });
+
+  it("never cuts a grapheme in half", () => {
+    expect(truncate("👍🏽👍🏽👍🏽", 2)).toBe("👍🏽…");
+    expect(truncate("ééé", 2)).toBe("é…");
+  });
+
+  it("drops the ending when there is no room for it, and gives nothing below 1", () => {
+    expect(truncate("abcdef", 1)).toBe("a");
+    expect(truncate("abcdef", 3, "...")).toBe("abc");
+    expect(truncate("abcdef", 0)).toBe("");
+    expect(truncate("abcdef", -2)).toBe("");
+    expect(truncate("abcdef", NaN)).toBe("");
+    expect(truncate("abcdef", 4.9)).toBe("abc…");
+  });
+
+  it("cuts at a word boundary with words: true", () => {
+    expect(truncate("The quick brown fox", { length: 13, words: true })).toBe("The quick…");
+    expect(truncate("The quick brown fox", { length: 11, words: true })).toBe("The quick…");
+    expect(truncate("Supercalifragilistic", { length: 6, words: true })).toBe("Super…");
+    expect(truncate("The quick brown fox", { length: 13, ending: "..." })).toBe("The quick...");
+  });
+
+  it("never exceeds length", () => {
+    fc.assert(
+      fc.property(
+        fc.string(),
+        fc.integer({ min: 0, max: 30 }),
+        fc.boolean(),
+        (text, length, words) => {
+          // fc.string() draws single code point characters, so code points count graphemes here.
+          expect(Array.from(truncate(text, { length, words })).length).toBeLessThanOrEqual(length);
+        },
+      ),
     );
   });
 });

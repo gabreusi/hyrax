@@ -1,6 +1,6 @@
 # DOM utilities
 
-`@gabreusi/hyrax/dom` has four functions for the browser, with no framework: use them from Vue, Svelte, React or plain
+`@gabreusi/hyrax/dom` has a handful of functions for the browser, with no framework: use them from Vue, Svelte, React or plain
 JavaScript. The React hooks are a thin layer over `listen` and `onClickOutside`.
 
 Every function is **safe to import and call where there is no `document`** (a server render, a worker, Node): it returns
@@ -20,6 +20,41 @@ getCSSVar("--gap", 16); // "12px" when defined, otherwise 16
 ```
 
 It only looks at the document element, so a variable defined on `<body>` or on another element is not seen.
+
+## `setCSSVar`
+
+`setCSSVar(name, value, element?)` writes a custom property to the inline style of `<html>`, where `getCSSVar` reads it,
+or of the element you pass. An object sets several at once. A number is written with no unit, as React does for custom
+properties, so it also works for unitless values; `null`, `undefined` and a number that is not finite remove the
+property instead of writing `"null"` or `"NaN"`.
+
+```ts
+setCSSVar("--accent", "#ff5a1f");
+setCSSVar("--columns", 3); // "3", not "3px"
+setCSSVar("--accent", null); // removes it
+
+const panel = document.createElement("div");
+setCSSVar({ "--gap": "12px", "--columns": 3 }, panel);
+```
+
+A `null` element (a ref that is not set yet) does nothing.
+
+## `readStorage` and `writeStorage`
+
+`localStorage` throws in more places than people expect: a private window, a sandboxed iframe, a full quota, a value
+that is not valid JSON, and the server, where there is no window. `readStorage(key, fallback)` returns the parsed value
+or `fallback`, and `writeStorage(key, value)` returns whether it worked. Neither throws.
+
+```ts
+writeStorage("settings", { theme: "dark" }); // true, or false when storage is blocked
+readStorage("settings", { theme: "light" }); // { theme: "dark" }, or the fallback
+readStorage("missing", 10); // 10
+writeStorage("settings", undefined); // removes the key
+```
+
+Pass `sessionStorage` (or any `Storage`) as the last argument to use another store. On the server they never touch a
+global store, not even the one Node has, since it would be shared by every request. The value is parsed, not validated:
+it is typed like the fallback, so check its shape when it may come from an older version of your app.
 
 ## `toPixels`
 
@@ -102,4 +137,4 @@ dialog = document.createElement("div");
 
 ## Reference
 
-The full signatures, with every option and error, are in the API reference: [`getCSSVar`](/api/hyrax/dom/functions/getCSSVar), [`toPixels`](/api/hyrax/dom/functions/toPixels), [`listen`](/api/hyrax/dom/functions/listen), [`onClickOutside`](/api/hyrax/dom/functions/onClickOutside).
+The full signatures, with every option and error, are in the API reference: [`getCSSVar`](/api/hyrax/dom/functions/getCSSVar), [`toPixels`](/api/hyrax/dom/functions/toPixels), [`listen`](/api/hyrax/dom/functions/listen), [`onClickOutside`](/api/hyrax/dom/functions/onClickOutside), [`setCSSVar`](/api/hyrax/dom/functions/setCSSVar), [`readStorage`](/api/hyrax/dom/functions/readStorage), [`writeStorage`](/api/hyrax/dom/functions/writeStorage).
