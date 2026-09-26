@@ -201,9 +201,9 @@ const next = [
         Small functions. <span class="hx-display__accent">Checked answers.</span>
       </h1>
       <p class="hx-lede">
-        Hyrax is a TypeScript toolkit for the helpers every project ends up writing: range math,
-        case conversion, a seeded random generator you can replay, and the DOM and React plumbing
-        for listeners and clicks outside. No runtime dependencies.
+        Hyrax is a TypeScript toolkit whose functions are short to call and safe to call. Each one
+        accepts its input in every shape it really comes in, types that shape exactly, and has a
+        defined answer for every input. No runtime dependencies.
       </p>
       <div class="hx-hero__actions">
         <div class="hx-install">
@@ -273,6 +273,23 @@ const next = [
         Nothing here is mocked. The answers are computed in your browser by the code these docs
         document.
       </p>
+    </section>
+
+    <section class="hx-block" aria-labelledby="hx-idea">
+      <div class="hx-block__text hx-block__text--wide">
+        <h2 id="hx-idea">Two rules behind every function</h2>
+        <p>
+          <strong>Take input in the shapes it really comes in, typed exactly.</strong> The common
+          case gets a short signature and the full form stays available. The compiler infers the
+          generics, and the return type lists every value that can come back, fallbacks included.
+        </p>
+        <p>
+          <strong>Have an answer for every input the types allow.</strong> Bounds work in either
+          order, degenerate input gives a neutral result, a missing target is a no-op, and browser
+          code falls back on the server. Hyrax throws only for a configuration no correct program
+          can write, because hiding a bug is worse than reporting it.
+        </p>
+      </div>
     </section>
 
     <section class="hx-block hx-split" aria-labelledby="hx-checked">

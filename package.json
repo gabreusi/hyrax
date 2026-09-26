@@ -1,7 +1,7 @@
 {
   "name": "@gabreusi/hyrax",
   "version": "1.0.0-rc.0",
-  "description": "Isomorphic TypeScript toolkit: seeded random, number and string helpers, plus DOM and React utilities.",
+  "description": "TypeScript utilities that are short to call and safe to call: every input shape accepted, every shape typed exactly, a defined answer for every input. Zero dependencies.",
   "keywords": [
     "typescript",
     "utilities",
