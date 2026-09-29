@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
+  <style>@media (prefers-color-scheme: dark) { .stone { fill: #e8dcc0 } .sun { fill: #e8703a } }</style>
+  <path class="stone" fill="#1f1c16" d="M0 4a4 4 0 0 1 4-4h20v93a3 3 0 0 1-3 3h-1A20 30 0 0 1 0 66zM96 4a4 4 0 0 0-4-4H72v93a3 3 0 0 0 3 3h1A20 30 0 0 0 96 66z"/>
+  <path class="sun" fill="#e0662e" d="M28.506 56A24 24 0 0 1 67.494 56zM26.669 59H69.331A24 24 0 0 1 70.956 63H25.044A24 24 0 0 1 26.669 59zM24.336 66H71.664A24 24 0 0 1 72 70H24A24 24 0 0 1 24.336 66z"/>
+</svg>

@@ -1,9 +1,16 @@
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./brand/mark-dark.svg">
+  <img src="./brand/mark-light.svg" alt="" width="64" height="64">
+</picture>
+
 # Hyrax
+
+**Small. Sure-footed.**
 
 [![npm](https://img.shields.io/npm/v/@gabreusi/hyrax.svg)](https://www.npmjs.com/package/@gabreusi/hyrax)
 [![CI](https://github.com/gabreusi/hyrax/actions/workflows/ci.yml/badge.svg)](https://github.com/gabreusi/hyrax/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
-[![Docs](https://img.shields.io/badge/docs-gabreusi.github.io%2Fhyrax-blue.svg)](https://gabreusi.github.io/hyrax/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-3f6b3a.svg)](./LICENSE)
+[![Docs](https://img.shields.io/badge/docs-gabreusi.github.io%2Fhyrax-3f6b3a.svg)](https://gabreusi.github.io/hyrax/)
 
 A TypeScript toolkit whose functions are short to call and safe to call. Each one accepts its input in every shape it
 really comes in, types each shape exactly, and has a defined answer for every input its types allow. Zero runtime

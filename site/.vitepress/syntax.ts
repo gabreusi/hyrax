@@ -63,8 +63,8 @@ const theme = (name: string, type: "light" | "dark", p: Palette): ThemeRegistrat
 });
 
 export const codeLight = theme("hyrax-light", "light", {
-  fg: "#2a2622",
-  comment: "#6c665c",
+  fg: "#2a2620",
+  comment: "#686150",
   keyword: "#7c3fc0",
   type: "#0b6a9e",
   string: "#8a5a00",
@@ -73,11 +73,11 @@ export const codeLight = theme("hyrax-light", "light", {
 });
 
 export const codeDark = theme("hyrax-dark", "dark", {
-  fg: "#e4e0d8",
-  comment: "#8d877d",
+  fg: "#e0d6bd",
+  comment: "#928c79",
   keyword: "#c4a5f7",
   type: "#79c0f2",
   string: "#e6c87b",
   constant: "#7fd1ae",
-  fn: "#fbf8f3",
+  fn: "#f3ead6",
 });

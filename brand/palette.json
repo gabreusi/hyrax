@@ -1,0 +1,24 @@
+{
+  "light": {
+    "name": "Savanna & Sun",
+    "sand": { "hex": "#efe6d2", "role": "page background" },
+    "paper": { "hex": "#f8f3e7", "role": "raised surfaces: cards, code blocks, nav" },
+    "ink": { "hex": "#1f1c16", "role": "text and the logo's stones" },
+    "sun": {
+      "hex": "#e0662e",
+      "role": "the logo's sun and at most one highlight per view; never UI"
+    },
+    "acacia": { "hex": "#3f6b3a", "role": "interactive: links, buttons, focus" }
+  },
+  "dark": {
+    "name": "Savanna Night",
+    "night": { "hex": "#121510", "role": "page background" },
+    "olive": { "hex": "#1d211a", "role": "raised surfaces: cards, code blocks, nav" },
+    "sand": { "hex": "#e8dcc0", "role": "text and the logo's stones" },
+    "sun": {
+      "hex": "#e8703a",
+      "role": "the logo's sun and at most one highlight per view; never UI"
+    },
+    "acacia": { "hex": "#8fc27f", "role": "interactive: links, buttons, focus" }
+  }
+}
