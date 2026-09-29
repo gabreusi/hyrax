@@ -1,52 +1,67 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-21T15:13:38.774807+00:00",
+  "generatedAt": "2026-09-29T03:35:19.645526+00:00",
   "title": "Design System: Hyrax",
   "extensions": {
     "colorMeta": {
-      "vermilion": {
+      "acacia": {
         "role": "primary",
-        "displayName": "Vermilion",
-        "canonical": "#ff6a3d",
+        "displayName": "Acacia",
+        "canonical": "#8fc27f",
         "tonalRamp": [
-          "#3a1408",
-          "#5c1f0d",
-          "#8a2e12",
-          "#b5330b",
-          "#e0521f",
-          "#ff6a3d",
-          "#ff9670",
-          "#ffc7b0"
+          "#1f3a1c",
+          "#2f5229",
+          "#3f6b3a",
+          "#4b7c45",
+          "#6a9e5d",
+          "#8fc27f",
+          "#a4d195",
+          "#c9e6bf"
         ]
       },
-      "graphite": {
-        "role": "neutral",
-        "displayName": "Warm Graphite",
-        "canonical": "#0d0c0b",
+      "sun": {
+        "role": "accent",
+        "displayName": "Sun",
+        "canonical": "#e8703a",
         "tonalRamp": [
-          "#090807",
-          "#0d0c0b",
-          "#161513",
-          "#1f1d1a",
-          "#2c2925",
-          "#4a4640",
-          "#8f897f",
-          "#f4f1ec"
+          "#4a1f0c",
+          "#7a3314",
+          "#b8501f",
+          "#e0662e",
+          "#e8703a",
+          "#ee8a5c",
+          "#f4ab88",
+          "#f9d2bd"
         ]
       },
-      "paper": {
+      "night": {
         "role": "neutral",
-        "displayName": "Warm Paper",
-        "canonical": "#fbf9f6",
+        "displayName": "Savanna Night",
+        "canonical": "#121510",
         "tonalRamp": [
-          "#1b1815",
-          "#57514a",
-          "#6a645a",
-          "#b9b3a9",
-          "#ece7df",
-          "#f2eee8",
-          "#f6f3ee",
-          "#fbf9f6"
+          "#0d0f0b",
+          "#121510",
+          "#1d211a",
+          "#262b22",
+          "#353b30",
+          "#5b5f4f",
+          "#9a947f",
+          "#e8dcc0"
+        ]
+      },
+      "sand": {
+        "role": "neutral",
+        "displayName": "Savanna Sand",
+        "canonical": "#efe6d2",
+        "tonalRamp": [
+          "#1f1c16",
+          "#534c3e",
+          "#686150",
+          "#b5ad97",
+          "#e7ddc6",
+          "#e8dec7",
+          "#efe6d2",
+          "#f8f3e7"
         ]
       }
     },
@@ -105,7 +120,7 @@
       "refersTo": "button-primary",
       "description": "The main action: Get started.",
       "html": "<a class=\"ds-btn-primary\" href=\"#\">Get started</a>",
-      "css": ".ds-btn-primary{display:inline-flex;align-items:center;height:44px;padding:0 20px;border-radius:10px;background:#ff6a3d;color:#1a0e08;font:600 15px Geist,system-ui,sans-serif;text-decoration:none;transition:background-color .15s}.ds-btn-primary:hover{background:#ff8259}.ds-btn-primary:focus-visible{outline:2px solid #ff6a3d;outline-offset:2px}"
+      "css": ".ds-btn-primary{display:inline-flex;align-items:center;height:44px;padding:0 20px;border-radius:10px;background:#8fc27f;color:#121510;font:600 15px \"Schibsted Grotesk\",system-ui,sans-serif;text-decoration:none;transition:background-color .15s}.ds-btn-primary:hover{background:#a4d195}.ds-btn-primary:focus-visible{outline:2px solid #8fc27f;outline-offset:2px}"
     },
     {
       "name": "Quiet Button",
@@ -113,7 +128,7 @@
       "refersTo": "button-quiet",
       "description": "A secondary action beside the primary.",
       "html": "<a class=\"ds-btn-quiet\" href=\"#\">API reference</a>",
-      "css": ".ds-btn-quiet{display:inline-flex;align-items:center;height:44px;padding:0 20px;border-radius:10px;border:1px solid rgba(255,240,220,.17);color:#f4f1ec;font:600 15px Geist,system-ui,sans-serif;text-decoration:none;transition:background-color .15s}.ds-btn-quiet:hover{background:#1f1d1a}.ds-btn-quiet:focus-visible{outline:2px solid #ff6a3d;outline-offset:2px}"
+      "css": ".ds-btn-quiet{display:inline-flex;align-items:center;height:44px;padding:0 20px;border-radius:10px;border:1px solid rgba(232,220,192,.17);color:#e8dcc0;font:600 15px \"Schibsted Grotesk\",system-ui,sans-serif;text-decoration:none;transition:background-color .15s}.ds-btn-quiet:hover{background:#262b22}.ds-btn-quiet:focus-visible{outline:2px solid #8fc27f;outline-offset:2px}"
     },
     {
       "name": "Text Field",
@@ -121,7 +136,7 @@
       "refersTo": "field",
       "description": "The seed and string inputs of the labs.",
       "html": "<input class=\"ds-field\" value=\"level-1\" />",
-      "css": ".ds-field{height:44px;padding:0 14px;border:1px solid rgba(255,240,220,.17);border-radius:10px;background:#161513;color:#f4f1ec;font:450 15px 'Geist Mono',ui-monospace,monospace}.ds-field:hover{border-color:#8f897f}.ds-field:focus-visible{outline:2px solid #ff6a3d;outline-offset:2px}"
+      "css": ".ds-field{height:44px;padding:0 14px;border:1px solid rgba(232,220,192,.17);border-radius:10px;background:#1d211a;color:#e8dcc0;font:450 15px 'JetBrains Mono',ui-monospace,monospace}.ds-field:hover{border-color:#9a947f}.ds-field:focus-visible{outline:2px solid #8fc27f;outline-offset:2px}"
     },
     {
       "name": "Chip",
@@ -129,7 +144,7 @@
       "refersTo": "chip",
       "description": "Chooses a preset; the selected chip takes the accent wash.",
       "html": "<button class=\"ds-chip\" aria-pressed=\"true\">int(1, 100)</button>",
-      "css": ".ds-chip{height:32px;padding:0 12px;border:1px solid rgba(255,240,220,.17);border-radius:8px;background:transparent;color:#b9b3a9;font:450 12.5px 'Geist Mono',ui-monospace,monospace}.ds-chip:hover{background:#1f1d1a;color:#f4f1ec}.ds-chip[aria-pressed=true]{background:rgba(255,106,61,.13);border-color:rgba(255,122,79,.42);color:#ff7a4f}"
+      "css": ".ds-chip{height:32px;padding:0 12px;border:1px solid rgba(232,220,192,.17);border-radius:8px;background:transparent;color:#b5ad97;font:450 12.5px 'JetBrains Mono',ui-monospace,monospace}.ds-chip:hover{background:#262b22;color:#e8dcc0}.ds-chip[aria-pressed=true]{background:rgba(143,194,127,.13);border-color:rgba(143,194,127,.42);color:#8fc27f}"
     },
     {
       "name": "Checked Code Block",
@@ -137,7 +152,7 @@
       "refersTo": "code-panel",
       "description": "A code panel whose header says what the checker did; asserted answers carry the accent.",
       "html": "<div class=\"ds-code\"><div class=\"ds-code__bar\"><span class=\"ds-code__dot\"></span>Run, answers asserted</div><pre>clamp(15, 0, 10);   <span class=\"ds-c\">// =></span> <b>10</b></pre></div>",
-      "css": ".ds-code{border:1px solid rgba(255,240,220,.09);border-radius:12px;background:#161513;color:#e4e0d8;overflow:hidden;font:13.5px/1.75 'Geist Mono',ui-monospace,monospace}.ds-code__bar{display:flex;align-items:center;gap:8px;height:40px;padding:0 16px;border-bottom:1px solid rgba(255,240,220,.09);font:500 12.5px Geist,system-ui,sans-serif;color:#ff7a4f}.ds-code__dot{width:14px;height:14px;border-radius:50%;background:#ff7a4f}.ds-code pre{margin:0;padding:14px 20px}.ds-c{color:#8d877d}.ds-code b{color:#ff7a4f;font-weight:560}"
+      "css": ".ds-code{border:1px solid rgba(232,220,192,.09);border-radius:12px;background:#1d211a;color:#e0d6bd;overflow:hidden;font:13.5px/1.75 'JetBrains Mono',ui-monospace,monospace}.ds-code__bar{display:flex;align-items:center;gap:8px;height:40px;padding:0 16px;border-bottom:1px solid rgba(232,220,192,.09);font:500 12.5px \"Schibsted Grotesk\",system-ui,sans-serif;color:#8fc27f}.ds-code__dot{width:14px;height:14px;border-radius:50%;background:#8fc27f}.ds-code pre{margin:0;padding:14px 20px}.ds-c{color:#928c79}.ds-code b{color:#8fc27f;font-weight:560}"
     },
     {
       "name": "Tabs",
@@ -145,33 +160,38 @@
       "refersTo": "chip-selected",
       "description": "Playground and entrypoint tabs with a scaling underline.",
       "html": "<div class=\"ds-tabs\"><button aria-selected=\"true\">Numbers <i>clamp, ratio</i></button><button>Strings</button></div>",
-      "css": ".ds-tabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid rgba(255,240,220,.09)}.ds-tabs button{position:relative;padding:10px 14px 12px;border:0;background:transparent;color:#8f897f;font:600 14.5px Geist,system-ui,sans-serif}.ds-tabs i{font:400 13px Geist,system-ui,sans-serif;margin-left:8px}.ds-tabs button[aria-selected=true]{color:#f4f1ec}.ds-tabs button[aria-selected=true]::after{content:'';position:absolute;left:10px;right:10px;bottom:0;height:2px;border-radius:2px;background:#ff6a3d}"
+      "css": ".ds-tabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid rgba(232,220,192,.09)}.ds-tabs button{position:relative;padding:10px 14px 12px;border:0;background:transparent;color:#9a947f;font:600 14.5px \"Schibsted Grotesk\",system-ui,sans-serif}.ds-tabs i{font:400 13px \"Schibsted Grotesk\",system-ui,sans-serif;margin-left:8px}.ds-tabs button[aria-selected=true]{color:#e8dcc0}.ds-tabs button[aria-selected=true]::after{content:'';position:absolute;left:10px;right:10px;bottom:0;height:2px;border-radius:2px;background:#8fc27f}"
     }
   ],
   "narrative": {
     "northStar": "The Live Bench",
-    "overview": "Every page is a bench you can touch. The documentation stops being text with pasted code: a function's answer sits beside its code, computed by the real library, and the reader can drag a value or change a seed before reading on. Dark first, precise and a little warm: graphite ground, hairline panels, one vermilion accent, a single family of type.",
+    "overview": "Every page is a bench you can touch. A function's answer sits beside its code, computed by the real library. The system follows brand/: Savanna Night by default, Savanna & Sun in light mode, hairline panels, and two colours with separate jobs. Acacia green means this is true or current (asserted answers, the active page, the main action). Orange is the sun and only the sun: the mark and the home headline's second sentence. The mark is two stones and a sun on the horizon between them.",
     "keyCharacteristics": [
-      "One warm graphite ground with panels one tonal step up and 1px hairlines; no resting shadows.",
-      "One accent, vermilion, that carries active, verified and primary.",
-      "Geist for reading and interface, Geist Mono for code, numbers and import paths.",
+      "One ground per theme with panels one tonal step off it and 1px hairlines; no resting shadows.",
+      "Acacia for active, verified and primary; orange only for the sun.",
+      "Schibsted Grotesk for reading and interface, JetBrains Mono for code, numbers and import paths.",
       "Live labs: an inset stage with real controls beside code whose results are computed by the library.",
       "Every code block states what the checker did to it, in its header, by shape and words."
     ],
     "rules": [
       {
+        "name": "The Orange Is The Sun Rule",
+        "body": "Orange appears in the mark, in at most one highlighted phrase per view. It never fills a button, colours a link, or marks state.",
+        "section": "colors"
+      },
+      {
         "name": "The True-Only Accent Rule",
-        "body": "Vermilion is used for what is true or current: asserted answers, the active page, the primary action. It never decorates, and it never appears in syntax colours.",
+        "body": "Acacia is used for what is true or current: asserted answers, the active page, the primary action, focus. It never decorates, and it never appears in syntax colours.",
         "section": "colors"
       },
       {
         "name": "The Warm Neutral Rule",
-        "body": "Neutrals lean warm (hue near 60); nothing is a cold blue-grey.",
+        "body": "Neutrals lean warm and slightly green (olive and sand); nothing is a cold blue-grey.",
         "section": "colors"
       },
       {
         "name": "The Mono Means Data Rule",
-        "body": "Monospace is for code, import paths, sizes and numbers you could type. Headings and labels stay in Geist.",
+        "body": "Monospace is for code, import paths, sizes and numbers you could type. Headings and labels stay in Schibsted Grotesk.",
         "section": "typography"
       },
       {
@@ -181,17 +201,18 @@
       }
     ],
     "dos": [
-      "Do keep vermilion for what is true or current: asserted answers, the active page, the main action.",
+      "Do keep acacia for what is true or current: asserted answers, the active page, the main action.",
+      "Do take the mark and colours from brand/ (mark-light.svg, mark-dark.svg, palette.json) rather than redrawing them.",
       "Do give every code block its state in the header, by shape and words; add new example pages to `sheets.ts` so their facts row exists.",
       "Do build new demos as labs: real controls on the stage, results computed by the source, never typed in.",
       "Do keep motion to state changes of 120-250ms with an exponential ease-out, and honour reduced motion.",
       "Do keep muted text at 4.5:1 or better on the surface it sits on, in both themes."
     ],
     "donts": [
-      "Don't draw the animal, a mascot or any character; the mark is a letter tile.",
+      "Don't draw the animal, a mascot or any character; the mark is two stones and a sun, from brand/.",
+      "Don't use orange for a control, a link, a state or a syntax colour; it is the sun.",
       "Don't put grid paper, dot grids, grain or any pattern behind content.",
       "Don't use gradient text, glowing halos, or a colored side border above 1px.",
-      "Don't put orange in syntax colours.",
       "Don't set labels or headings in monospace, or uppercase eyebrow labels above headings.",
       "Don't nest panels inside panels or lay out a page as a grid of identical icon cards."
     ]

@@ -52,18 +52,21 @@ stay green.
 
 ## Brand Commitments
 
-- Name: Hyrax. No existing logo, colors or mascot; the owner left the identity open (2026-09-21), including whether to
-  use the animal.
+- Name: Hyrax. Identity chosen by the owner on 2026-09-29 and kept in `brand/` (mark SVGs, `palette.json`, a brand
+  board and its README). The owner chose the name for the hyrax memes; the brand only hints at the animal.
 - Voice already present in the guides: plain, exact, explains why, states limits honestly ("Limits worth knowing"), no
   hype. Keep it.
 - Author: Gabriel Pantano Signorini. License: MIT.
-- Visual direction from the owner (2026-09-21, replaces every earlier one): a modern, beautiful docs site inspired by
-  the Motion (framer-motion) and Zustand docs. Dark first with a vivid accent, live demos beside code, plain language.
-  No animal reference at all: no mascot, no drawn hyrax, no rock or sun motifs; the identity is the wordmark "Hyrax"
-  and a letter tile.
+- Visual direction from the owner (2026-09-21, still standing): a modern, beautiful docs site inspired by the Motion
+  (framer-motion) and Zustand docs. Dark first, live demos beside code, plain language.
+- Brand from the owner (2026-09-29, replaces the 2026-09-21 "wordmark and letter tile only" rule): the mark
+  "Horizon", two stones with a sun on the horizon between them as the H's crossbar; the stones end in a one-sided heel,
+  a hint of the hyrax's teeth and no more. Palettes Savanna & Sun (light) and Savanna Night (dark). Orange is the sun
+  only; acacia green is the interactive colour in both modes. Schibsted Grotesk and JetBrains Mono. Tagline "Small.
+  Sure-footed." No mascot and no drawn hyrax; vampire and fang themes were tried and rejected.
 - Retired worlds, not to be revived: the green engineering grid paper ("The Computation Sheet"), the "Napkin Sketch"
   zine (hand-drawn boxes, cartoon mascot, cream paper with highlighters, handwritten fonts) and the sundial "Gnomon
-  Plate". Grid or graph paper behind content and green as the identity colour stay out.
+  Plate". Grid or graph paper behind content stays out; green returns only as the acacia interactive colour.
 - Keep the mechanism these worlds made visible: checked examples carry a mark that says what the checker did.
 
 ## Evidence on Hand

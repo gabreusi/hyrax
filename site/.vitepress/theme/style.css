@@ -1,62 +1,69 @@
-/* Hyrax docs. Dark first: a warm graphite ground, panels one step up, hairlines instead of shadows,
-   and one vermilion accent. The accent means one thing: this is true (an answer the checker asserted,
-   the page you are on, the main action). Everything else is neutral. */
+/* Hyrax docs. Savanna & Sun by day, Savanna Night by night (see brand/). Panels sit one step off the
+   ground with hairlines instead of shadows. Acacia green is the interactive colour and means "this is
+   true or current" (an asserted answer, the page you are on, the main action). Orange is the sun: the
+   mark and the hero's highlight. It is never a control. */
 
 /* ---------- Tokens ---------- */
 
 :root {
-  --hx-bg: #fbf9f6;
-  --hx-bg-sunk: #f2eee8;
-  --hx-panel: #f6f3ee;
-  --hx-panel-2: #ece7df;
-  --hx-line: rgba(44, 32, 18, 0.11);
-  --hx-line-strong: rgba(44, 32, 18, 0.2);
-  --hx-text: #1b1815;
-  --hx-text-2: #57514a;
-  --hx-text-3: #6a645a;
-  --hx-accent: #ff6a3d;
-  --hx-accent-hover: #ff8259;
-  --hx-accent-ink: #b5330b;
-  --hx-accent-soft: rgba(255, 106, 61, 0.11);
-  --hx-accent-line: rgba(181, 51, 11, 0.34);
-  --hx-on-accent: #1a0e08;
+  --hx-bg: #efe6d2;
+  --hx-bg-sunk: #e8dec7;
+  --hx-panel: #f8f3e7;
+  --hx-panel-2: #e7ddc6;
+  --hx-line: rgba(31, 28, 22, 0.12);
+  --hx-line-strong: rgba(31, 28, 22, 0.22);
+  --hx-text: #1f1c16;
+  --hx-text-2: #534c3e;
+  --hx-text-3: #686150;
+  --hx-accent: #3f6b3a;
+  --hx-accent-hover: #4b7c45;
+  --hx-accent-ink: #3f6b3a;
+  --hx-accent-soft: rgba(63, 107, 58, 0.12);
+  --hx-accent-line: rgba(63, 107, 58, 0.36);
+  --hx-on-accent: #ffffff;
+  --hx-sun: #e0662e;
+  --hx-sun-ink: #b8501f;
   --hx-danger: #b3261e;
-  --hx-glow: rgba(255, 106, 61, 0.13);
   --hx-tk-k: #7c3fc0;
   --hx-tk-s: #8a5a00;
   --hx-tk-n: #0f7a55;
   --hx-tk-t: #0b6a9e;
   --hx-tk-f: #14110e;
-  --hx-tk-c: #6c665c;
-  --hx-code-fg: #2a2622;
+  --hx-tk-c: #686150;
+  --hx-code-fg: #2a2620;
 
-  --hx-font: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --hx-mono: "Geist Mono", ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  --hx-font:
+    "Schibsted Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --hx-mono: "JetBrains Mono", ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
   --hx-ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .dark {
-  --hx-bg: #0d0c0b;
-  --hx-bg-sunk: #090807;
-  --hx-panel: #161513;
-  --hx-panel-2: #1f1d1a;
-  --hx-line: rgba(255, 240, 220, 0.09);
-  --hx-line-strong: rgba(255, 240, 220, 0.17);
-  --hx-text: #f4f1ec;
-  --hx-text-2: #b9b3a9;
-  --hx-text-3: #8f897f;
-  --hx-accent-ink: #ff7a4f;
-  --hx-accent-soft: rgba(255, 106, 61, 0.13);
-  --hx-accent-line: rgba(255, 122, 79, 0.42);
+  --hx-bg: #121510;
+  --hx-bg-sunk: #0d0f0b;
+  --hx-panel: #1d211a;
+  --hx-panel-2: #262b22;
+  --hx-line: rgba(232, 220, 192, 0.09);
+  --hx-line-strong: rgba(232, 220, 192, 0.17);
+  --hx-text: #e8dcc0;
+  --hx-text-2: #b5ad97;
+  --hx-text-3: #9a947f;
+  --hx-accent: #8fc27f;
+  --hx-accent-hover: #a4d195;
+  --hx-accent-ink: #8fc27f;
+  --hx-accent-soft: rgba(143, 194, 127, 0.13);
+  --hx-accent-line: rgba(143, 194, 127, 0.42);
+  --hx-on-accent: #121510;
+  --hx-sun: #e8703a;
+  --hx-sun-ink: #e8703a;
   --hx-danger: #ff8a7d;
-  --hx-glow: rgba(255, 106, 61, 0.16);
   --hx-tk-k: #c4a5f7;
   --hx-tk-s: #e6c87b;
   --hx-tk-n: #7fd1ae;
   --hx-tk-t: #79c0f2;
-  --hx-tk-f: #fbf8f3;
-  --hx-tk-c: #8d877d;
-  --hx-code-fg: #e4e0d8;
+  --hx-tk-f: #f3ead6;
+  --hx-tk-c: #928c79;
+  --hx-code-fg: #e0d6bd;
 }
 
 /* VitePress reads its own variables; point them at the tokens. */
@@ -141,7 +148,6 @@ html.dark {
 }
 body {
   background: var(--hx-bg);
-  font-feature-settings: "ss01", "cv11";
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -150,7 +156,7 @@ body {
   color: var(--hx-text);
 }
 .dark ::selection {
-  background: rgba(255, 106, 61, 0.34);
+  background: rgba(143, 194, 127, 0.3);
 }
 input,
 textarea {
@@ -200,9 +206,8 @@ textarea {
   gap: 10px;
 }
 .VPNavBarTitle .logo {
-  height: 24px;
-  width: 24px;
-  border-radius: 6px;
+  height: 22px;
+  width: 22px;
 }
 .VPNavBarMenuLink,
 .VPNavBarMenu .VPFlyout .button {
@@ -1466,18 +1471,6 @@ textarea {
   padding: 96px 0 56px;
   text-align: center;
 }
-.hx-hero::before {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  top: -140px;
-  left: 50%;
-  width: min(1100px, 130vw);
-  height: 620px;
-  transform: translateX(-50%);
-  background: radial-gradient(closest-side, var(--hx-glow), transparent);
-  pointer-events: none;
-}
 .hx-display {
   font-size: clamp(2.5rem, 1.2rem + 5.2vw, 4.75rem);
   font-weight: 660;
@@ -1486,7 +1479,7 @@ textarea {
   text-wrap: balance;
 }
 .hx-display__accent {
-  color: var(--hx-accent-ink);
+  color: var(--hx-sun-ink);
 }
 .hx-lede {
   max-width: 640px;

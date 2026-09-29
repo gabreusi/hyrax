@@ -69,15 +69,15 @@ export default defineConfig({
   // Dark first: the docs are read next to an editor. Readers can still switch, and the choice sticks.
   appearance: "dark",
   head: [
-    ["link", { rel: "icon", type: "image/svg+xml", href: "/hyrax/mark.svg" }],
-    ["meta", { name: "theme-color", content: "#0d0c0b" }],
+    ["link", { rel: "icon", type: "image/svg+xml", href: "/hyrax/icon.svg" }],
+    ["meta", { name: "theme-color", content: "#121510" }],
     ["link", { rel: "preconnect", href: "https://fonts.googleapis.com" }],
     ["link", { rel: "preconnect", href: "https://fonts.gstatic.com", crossorigin: "" }],
     [
       "link",
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Geist:wght@400..700&family=Geist+Mono:wght@400..600&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400..800&family=JetBrains+Mono:wght@400..600&display=swap",
       },
     ],
   ],
@@ -97,7 +97,7 @@ export default defineConfig({
     },
   },
   themeConfig: {
-    logo: { src: "/mark.svg", alt: "" },
+    logo: { light: "/mark-light.svg", dark: "/mark-dark.svg", alt: "" },
     siteTitle: "Hyrax",
     nav: [
       { text: "Guide", link: "/guide/getting-started", activeMatch: "^/guide/" },
