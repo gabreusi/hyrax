@@ -60,7 +60,7 @@ export default defineConfig({
   title: "Hyrax",
   titleTemplate: ":title · Hyrax",
   description:
-    "Hyrax is a small TypeScript toolkit with checked examples: range math, case conversion, a seeded random generator you can replay, and DOM and React plumbing.",
+    "Hyrax is a TypeScript toolkit whose functions are short to call and safe to call: they accept input in every shape it comes in, type it exactly, and have a defined answer for every input.",
   lang: "en",
   // The site lives at https://gabreusi.github.io/hyrax/
   base: "/hyrax/",

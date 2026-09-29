@@ -14,14 +14,19 @@ case or an example. A secondary audience is existing users of the 0.x package (`
 
 ## Product Purpose
 
-Hyrax (`@gabreusi/hyrax`) is a small, isomorphic TypeScript toolkit: number and string helpers, a seeded random
-generator, a suspend detector, DOM utilities and a thin React layer. The documentation site
+Hyrax (`@gabreusi/hyrax`) is a small, isomorphic TypeScript toolkit whose functions are short to call and safe to call.
+Each one accepts its input in every shape it really comes in, types each shape exactly, and has a defined answer for
+every input its types allow. The documentation site
 (https://gabreusi.github.io/hyrax/) exists so that a developer can adopt it with confidence and use it without reading
 the source. Success: a visitor understands what each entrypoint is for, finds any function in two clicks or one search,
 and trusts the examples.
 
 ## Positioning
 
+- Two rules define every function (see `AGENTS.md`). A wide input surface, typed exactly: the common case has a short
+  signature, the full form stays available, and the return type lists every value that can come back. A narrow failure
+  surface: degenerate or missing input gives a neutral value, a fallback or a no-op, and only a configuration no correct
+  program can write throws.
 - Every code example in the guides and the API reference is type-checked against the built package, and the core ones
   are run; a trailing `// => value` is an assertion. The docs cannot silently drift from the code.
 - `Random` is a contract: the same seed gives the same output in every runtime (Node, browsers, Deno, Bun) and only
@@ -47,7 +52,7 @@ stay green.
   writeStorage, observeSize, onVisible, copyText, onKey, lockScroll, toPixels, listen, onClickOutside), `@gabreusi/hyrax/react` (useEventListener, useClickOutside,
   useInterval, useMediaQuery, useStorage, useDebouncedValue, useSuspend, useHotkey, useScrollLock, useSize, useVisible, useForceUpdate, hx, Portal).
 - Runtimes: Node 20+, current browsers (ES2022), Deno, Bun; React 18 and 19 as optional peers.
-- Status: 1.0.0-rc.0, not yet published to npm. The docs must say so until the first release.
+- Status: 1.0 release candidates are published to npm under `latest` (there is no stable version yet), so a plain install gets the newest one.
 - Documentation language: English. Owner's chat language is Brazilian Portuguese.
 
 ## Brand Commitments
