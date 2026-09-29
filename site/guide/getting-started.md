@@ -4,7 +4,7 @@ Install the package, pick the entrypoint that matches where your code runs, and 
 all the setup there is.
 
 ::: tip Release candidates
-Hyrax 1.0 is in release candidates. `npm install @gabreusi/hyrax@rc` gets the newest one, and the old 0.x code lives at
+Hyrax 1.0 is in release candidates. the install below gets the newest one, and the old 0.x code lives at
 the git tag `legacy-0.6.1`.
 :::
 

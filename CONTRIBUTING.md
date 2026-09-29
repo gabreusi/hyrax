@@ -128,8 +128,8 @@ workflow is publishing (OIDC), and the package gets a provenance statement.
   `major`, and write the line for the changelog). One that changes nothing they see (tests, tooling, docs) adds none.
 - **On `main`, the workflow opens a "Version Packages" pull request** with the new version and the changelog. **Merging
   it publishes**, creates the tag `vX.Y.Z` and the GitHub release.
-- **The `rc` pre-release mode is on** until 1.0.0: versions are `1.0.0-rc.N` and are published under the dist-tag `rc`
-  (`npm install @gabreusi/hyrax@rc`). To leave it, run `npx changeset pre exit` in a pull request, review the changesets
+- **The `rc` pre-release mode is on** until 1.0.0: versions are `1.0.0-rc.N`. Changesets publishes them under the dist-tag
+  `latest` and not `rc` while no stable version exists, so a plain `npm install @gabreusi/hyrax` gets the newest one. To leave it, run `npx changeset pre exit` in a pull request, review the changesets
   in `.changeset/pre/` (they become the 1.0.0 changelog), and merge the "Version Packages" pull request that follows.
 - **What the tarball holds is checked** (`npm run check:package`), and `npm publish` from a machine refuses a package that
   is private or still at the `0.0.0` placeholder (`prepublishOnly`).
