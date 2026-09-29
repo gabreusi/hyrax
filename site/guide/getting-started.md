@@ -3,9 +3,9 @@
 Install the package, pick the entrypoint that matches where your code runs, and check one TypeScript setting. That is
 all the setup there is.
 
-::: warning Not published yet
-Hyrax 1.0 is being prepared. Until the first release these instructions describe what the package will do, and the
-old 0.x code lives at the git tag `legacy-0.6.1`.
+::: tip Release candidates
+Hyrax 1.0 is in release candidates. `npm install @gabreusi/hyrax@rc` gets the newest one, and the old 0.x code lives at
+the git tag `legacy-0.6.1`.
 :::
 
 ## Install

@@ -1,5 +1,6 @@
 # Hyrax
 
+[![npm](https://img.shields.io/npm/v/@gabreusi/hyrax/rc.svg)](https://www.npmjs.com/package/@gabreusi/hyrax)
 [![CI](https://github.com/gabreusi/hyrax/actions/workflows/ci.yml/badge.svg)](https://github.com/gabreusi/hyrax/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![Docs](https://img.shields.io/badge/docs-gabreusi.github.io%2Fhyrax-blue.svg)](https://gabreusi.github.io/hyrax/)
@@ -8,8 +9,8 @@ A TypeScript toolkit whose functions are short to call and safe to call. Each on
 really comes in, types each shape exactly, and has a defined answer for every input its types allow. Zero runtime
 dependencies. Works in Node, browsers, Deno and Bun.
 
-> **Status:** being rebuilt toward 1.0. The package is not published yet under its new name (`@gabreusi/hyrax`). The
-> old 0.x code (`@gpsign/hyrax`) lives at the git tag `legacy-0.6.1`.
+> **Status:** release candidates of 1.0 are on npm; `npm install @gabreusi/hyrax@rc` gets the newest one. The old 0.x
+> code (`@gpsign/hyrax`) lives at the git tag `legacy-0.6.1`.
 
 ## Install
 
