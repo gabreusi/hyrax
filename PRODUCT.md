@@ -52,7 +52,7 @@ stay green.
   writeStorage, observeSize, onVisible, copyText, onKey, lockScroll, toPixels, listen, onClickOutside), `@gabreusi/hyrax/react` (useEventListener, useClickOutside,
   useInterval, useMediaQuery, useStorage, useDebouncedValue, useSuspend, useHotkey, useScrollLock, useSize, useVisible, useForceUpdate, hx, Portal).
 - Runtimes: Node 20+, current browsers (ES2022), Deno, Bun; React 18 and 19 as optional peers.
-- Status: 1.0 release candidates are published to npm under the dist-tag `rc`. The docs point to `@rc` until 1.0.0.
+- Status: 1.0 release candidates are published to npm under `latest` (there is no stable version yet), so a plain install gets the newest one.
 - Documentation language: English. Owner's chat language is Brazilian Portuguese.
 
 ## Brand Commitments

@@ -167,14 +167,15 @@ try {
       ],
       dir,
     );
-  // A version that was just published can take a moment to be served: try again before giving up.
+  // A version that was just published can take a couple of minutes to be served (1.0.0-rc.1 took about two): try
+  // again before giving up.
   for (let attempt = 1; ; attempt++) {
     try {
       install();
       break;
     } catch (error) {
-      if (!fromRegistry || attempt === 6) throw error;
-      console.error(`${target} is not available yet (try ${attempt} of 6), waiting...`);
+      if (!fromRegistry || attempt === 30) throw error;
+      console.error(`${target} is not available yet (try ${attempt} of 30), waiting...`);
       await new Promise((done) => setTimeout(done, 10_000));
     }
   }
